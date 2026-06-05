@@ -4,13 +4,17 @@ import { ArrowLeft } from "lucide-react";
 import { MuchikLogo } from "@/components/muchik/Logo";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
+import { login as apiLogin } from "@/integrations/api/auth";
+import { ApiError } from "@/integrations/api/client";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
       { title: "Inicia sesión — Muchik 2026" },
-      { name: "description", content: "Inicia sesión en tu cuenta de Muchik 2026 con tu correo y contraseña." },
+      {
+        name: "description",
+        content: "Inicia sesión en tu cuenta de Muchik 2026 con tu correo y contraseña.",
+      },
     ],
   }),
   component: LoginPage,
@@ -27,16 +31,18 @@ function LoginPage() {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    setLoading(false);
-    if (signInError) {
-      setError("Correo o contraseña incorrectos.");
-      return;
+    try {
+      await apiLogin(email, password);
+      navigate({ to: "/" });
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        setError("Correo o contraseña incorrectos.");
+      } else {
+        setError("No pudimos conectar con el servidor. Inténtalo de nuevo más tarde.");
+      }
+    } finally {
+      setLoading(false);
     }
-    navigate({ to: "/" });
   }
 
   return (
