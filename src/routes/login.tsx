@@ -33,7 +33,7 @@ function LoginPage() {
     setLoading(true);
     try {
       await apiLogin(email, password);
-      navigate({ to: "/" });
+      navigate({ to: "/backoffice" });
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
         setError("Correo o contraseña incorrectos.");
