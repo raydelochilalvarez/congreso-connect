@@ -18,7 +18,7 @@ RUN npm run build
 
 FROM node:22-slim
 WORKDIR /app
-COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/.output ./.output
 EXPOSE 3000
 ENV HOST=0.0.0.0
-CMD ["node", "dist/server/index.mjs"]
+CMD ["node", ".output/server/index.mjs"]
