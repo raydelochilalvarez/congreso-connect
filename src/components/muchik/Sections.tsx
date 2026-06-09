@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
-import { Calendar, MapPin, Ticket, Store, Users, Mic, Radio, Newspaper, Award, Mail, Phone, ArrowRight } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { Calendar, MapPin, Ticket, Store, Users, Mic, Radio, Newspaper, Award, Mail, Phone, ArrowRight, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { SectionTitle, ArrowBand } from "./SectionTitle";
 import { RegistroDialog } from "./RegistroDialog";
 import { sponsorLogos } from "./sponsor-logos";
+import { getAccessToken, ApiError } from "@/integrations/api/client";
 import {
   listPublicTicketTypes,
   formatPrice,
   type PublicTicketType,
 } from "@/integrations/api/ticket-types";
+import { createOrder } from "@/integrations/api/orders";
 
 const Section = ({
   id,
@@ -88,8 +91,11 @@ function Card({ icon, title, body }: { icon: React.ReactNode; title: string; bod
 }
 
 export function Entradas() {
+  const navigate = useNavigate();
   const [tiers, setTiers] = useState<PublicTicketType[]>([]);
   const [loading, setLoading] = useState(true);
+  const [buyingId, setBuyingId] = useState<number | null>(null);
+  const [buyError, setBuyError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -102,9 +108,40 @@ export function Entradas() {
     };
   }, []);
 
+  async function buy(ticketTypeId: number) {
+    setBuyError(null);
+    // Sin sesión → a registrarse como asistente.
+    if (!getAccessToken()) {
+      navigate({ to: "/registro-asistente" });
+      return;
+    }
+    setBuyingId(ticketTypeId);
+    try {
+      await createOrder(ticketTypeId, 1);
+      navigate({ to: "/mis-entradas" });
+    } catch (err) {
+      const msg =
+        err instanceof ApiError && err.data && typeof err.data === "object"
+          ? Object.values(err.data as Record<string, unknown>)
+              .map((v) => (Array.isArray(v) ? v.join(" ") : String(v)))
+              .join(" · ")
+          : "No se pudo procesar la compra. Intenta nuevamente.";
+      setBuyError(msg);
+    } finally {
+      setBuyingId(null);
+    }
+  }
+
   return (
     <Section id="entradas" className="border-t border-border/60">
       <SectionTitle eyebrow="Público general" title="Entradas" description="Vive Muchik 2026. Elige tu experiencia y asegura tu lugar." />
+
+      {buyError && (
+        <div className="mt-6 rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-center text-sm text-destructive">
+          {buyError}
+        </div>
+      )}
+
       {loading ? (
         <div className="mt-12 text-center text-sm text-muted-foreground">Cargando entradas…</div>
       ) : tiers.length === 0 ? (
@@ -135,12 +172,22 @@ export function Entradas() {
               {t.description && (
                 <p className="mt-3 text-sm text-muted-foreground">{t.description}</p>
               )}
-              <RegistroDialog
-                className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-primary-foreground"
+              <button
+                onClick={() => buy(t.id)}
+                disabled={buyingId === t.id}
+                className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:opacity-95 disabled:opacity-60"
                 style={{ background: "var(--gradient-brand)" }}
               >
-                Comprar entrada <ArrowRight className="h-4 w-4" />
-              </RegistroDialog>
+                {buyingId === t.id ? (
+                  <>
+                    Procesando… <Loader2 className="h-4 w-4 animate-spin" />
+                  </>
+                ) : (
+                  <>
+                    Comprar entrada <ArrowRight className="h-4 w-4" />
+                  </>
+                )}
+              </button>
             </div>
           ))}
         </div>
