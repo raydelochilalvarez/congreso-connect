@@ -1,6 +1,6 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Clock, Loader2, LogOut, Store } from "lucide-react";
+import { ArrowLeft, Clock, Loader2, LogOut, Store } from "lucide-react";
 import { MuchikLogo } from "@/components/muchik/Logo";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { readableApiError } from "@/integrations/api/client";
@@ -165,6 +165,7 @@ function ApprovedPanel({ name }: { name: string }) {
 
 function ExpositorPage() {
   const navigate = useNavigate();
+  const router = useRouter();
   const { user, loading, logout } = useCurrentUser();
 
   useEffect(() => {
@@ -187,9 +188,19 @@ function ExpositorPage() {
     <div className="min-h-screen bg-muted/30">
       <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
-          <Link to="/" className="shrink-0">
-            <MuchikLogo />
-          </Link>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => router.history.back()}
+              aria-label="Atrás"
+              className="rounded-md p-2 text-foreground/70 transition hover:bg-muted"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <Link to="/" className="shrink-0">
+              <MuchikLogo />
+            </Link>
+          </div>
           <div className="flex items-center gap-3">
             <span className="hidden text-sm text-foreground/70 sm:inline">{user.full_name}</span>
             <button
