@@ -5,6 +5,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardCheck,
+  ClipboardList,
   LogOut,
   Menu,
   Receipt,
@@ -31,6 +32,7 @@ const menu = [
   { to: "/backoffice/expositores", label: "Aprobar expositores", icon: ClipboardCheck },
   { to: "/backoffice/entradas", label: "Entradas", icon: Ticket },
   { to: "/backoffice/stands", label: "Stands", icon: Store },
+  { to: "/backoffice/reservas", label: "Reservas", icon: ClipboardList },
   { to: "/backoffice/ordenes", label: "Órdenes", icon: Receipt },
 ] as const;
 

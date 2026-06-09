@@ -230,8 +230,10 @@ export function Entradas() {
 }
 
 export function Stand() {
+  const navigate = useNavigate();
   const [stands, setStands] = useState<PublicStandType[]>([]);
   const [loading, setLoading] = useState(true);
+  const [authPromptOpen, setAuthPromptOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -243,6 +245,15 @@ export function Stand() {
       active = false;
     };
   }, []);
+
+  function reserve() {
+    // Sin sesión → popup; con sesión → al panel del expositor (allí reserva).
+    if (!getAccessToken()) {
+      setAuthPromptOpen(true);
+      return;
+    }
+    navigate({ to: "/expositor" });
+  }
 
   return (
     <Section id="stand">
@@ -271,13 +282,43 @@ export function Stand() {
                   ))}
                 </ul>
               )}
-              <RegistroDialog className="mt-6 inline-flex items-center gap-2 rounded-full border border-primary/20 px-5 py-2.5 text-sm font-semibold text-primary transition hover:bg-primary/5">
+              <button
+                onClick={reserve}
+                className="mt-6 inline-flex items-center gap-2 rounded-full border border-primary/20 px-5 py-2.5 text-sm font-semibold text-primary transition hover:bg-primary/5"
+              >
                 Reservar stand <ArrowRight className="h-4 w-4" />
-              </RegistroDialog>
+              </button>
             </div>
           ))}
         </div>
       )}
+
+      <Dialog open={authPromptOpen} onOpenChange={setAuthPromptOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reserva tu stand</DialogTitle>
+            <DialogDescription>
+              Para reservar un stand inicia sesión con tu cuenta de expositor. Si
+              aún no la tienes, regístrate como expositor.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+            <button
+              onClick={() => navigate({ to: "/login" })}
+              className="flex-1 rounded-full border border-border px-5 py-2.5 text-sm font-semibold text-foreground/80 transition hover:bg-muted"
+            >
+              Iniciar sesión
+            </button>
+            <button
+              onClick={() => navigate({ to: "/registro" })}
+              className="flex-1 rounded-full px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-brand)] transition hover:opacity-95"
+              style={{ background: "var(--gradient-brand)" }}
+            >
+              Registrarme como expositor
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Section>
   );
 }
