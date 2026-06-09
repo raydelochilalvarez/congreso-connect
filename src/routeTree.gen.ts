@@ -9,11 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RegistroAsistenteRouteImport } from './routes/registro-asistente'
 import { Route as RegistroRouteImport } from './routes/registro'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ExpositorRouteImport } from './routes/expositor'
 import { Route as BackofficeRouteImport } from './routes/backoffice'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BackofficeIndexRouteImport } from './routes/backoffice.index'
+import { Route as BackofficeExpositoresRouteImport } from './routes/backoffice.expositores'
 
+const RegistroAsistenteRoute = RegistroAsistenteRouteImport.update({
+  id: '/registro-asistente',
+  path: '/registro-asistente',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegistroRoute = RegistroRouteImport.update({
   id: '/registro',
   path: '/registro',
@@ -22,6 +31,11 @@ const RegistroRoute = RegistroRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExpositorRoute = ExpositorRouteImport.update({
+  id: '/expositor',
+  path: '/expositor',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BackofficeRoute = BackofficeRouteImport.update({
@@ -34,43 +48,97 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BackofficeIndexRoute = BackofficeIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => BackofficeRoute,
+} as any)
+const BackofficeExpositoresRoute = BackofficeExpositoresRouteImport.update({
+  id: '/expositores',
+  path: '/expositores',
+  getParentRoute: () => BackofficeRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/backoffice': typeof BackofficeRoute
+  '/backoffice': typeof BackofficeRouteWithChildren
+  '/expositor': typeof ExpositorRoute
   '/login': typeof LoginRoute
   '/registro': typeof RegistroRoute
+  '/registro-asistente': typeof RegistroAsistenteRoute
+  '/backoffice/expositores': typeof BackofficeExpositoresRoute
+  '/backoffice/': typeof BackofficeIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/backoffice': typeof BackofficeRoute
+  '/expositor': typeof ExpositorRoute
   '/login': typeof LoginRoute
   '/registro': typeof RegistroRoute
+  '/registro-asistente': typeof RegistroAsistenteRoute
+  '/backoffice/expositores': typeof BackofficeExpositoresRoute
+  '/backoffice': typeof BackofficeIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/backoffice': typeof BackofficeRoute
+  '/backoffice': typeof BackofficeRouteWithChildren
+  '/expositor': typeof ExpositorRoute
   '/login': typeof LoginRoute
   '/registro': typeof RegistroRoute
+  '/registro-asistente': typeof RegistroAsistenteRoute
+  '/backoffice/expositores': typeof BackofficeExpositoresRoute
+  '/backoffice/': typeof BackofficeIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/backoffice' | '/login' | '/registro'
+  fullPaths:
+    | '/'
+    | '/backoffice'
+    | '/expositor'
+    | '/login'
+    | '/registro'
+    | '/registro-asistente'
+    | '/backoffice/expositores'
+    | '/backoffice/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/backoffice' | '/login' | '/registro'
-  id: '__root__' | '/' | '/backoffice' | '/login' | '/registro'
+  to:
+    | '/'
+    | '/expositor'
+    | '/login'
+    | '/registro'
+    | '/registro-asistente'
+    | '/backoffice/expositores'
+    | '/backoffice'
+  id:
+    | '__root__'
+    | '/'
+    | '/backoffice'
+    | '/expositor'
+    | '/login'
+    | '/registro'
+    | '/registro-asistente'
+    | '/backoffice/expositores'
+    | '/backoffice/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  BackofficeRoute: typeof BackofficeRoute
+  BackofficeRoute: typeof BackofficeRouteWithChildren
+  ExpositorRoute: typeof ExpositorRoute
   LoginRoute: typeof LoginRoute
   RegistroRoute: typeof RegistroRoute
+  RegistroAsistenteRoute: typeof RegistroAsistenteRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/registro-asistente': {
+      id: '/registro-asistente'
+      path: '/registro-asistente'
+      fullPath: '/registro-asistente'
+      preLoaderRoute: typeof RegistroAsistenteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/registro': {
       id: '/registro'
       path: '/registro'
@@ -83,6 +151,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/expositor': {
+      id: '/expositor'
+      path: '/expositor'
+      fullPath: '/expositor'
+      preLoaderRoute: typeof ExpositorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/backoffice': {
@@ -99,14 +174,44 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/backoffice/': {
+      id: '/backoffice/'
+      path: '/'
+      fullPath: '/backoffice/'
+      preLoaderRoute: typeof BackofficeIndexRouteImport
+      parentRoute: typeof BackofficeRoute
+    }
+    '/backoffice/expositores': {
+      id: '/backoffice/expositores'
+      path: '/expositores'
+      fullPath: '/backoffice/expositores'
+      preLoaderRoute: typeof BackofficeExpositoresRouteImport
+      parentRoute: typeof BackofficeRoute
+    }
   }
 }
 
+interface BackofficeRouteChildren {
+  BackofficeExpositoresRoute: typeof BackofficeExpositoresRoute
+  BackofficeIndexRoute: typeof BackofficeIndexRoute
+}
+
+const BackofficeRouteChildren: BackofficeRouteChildren = {
+  BackofficeExpositoresRoute: BackofficeExpositoresRoute,
+  BackofficeIndexRoute: BackofficeIndexRoute,
+}
+
+const BackofficeRouteWithChildren = BackofficeRoute._addFileChildren(
+  BackofficeRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  BackofficeRoute: BackofficeRoute,
+  BackofficeRoute: BackofficeRouteWithChildren,
+  ExpositorRoute: ExpositorRoute,
   LoginRoute: LoginRoute,
   RegistroRoute: RegistroRoute,
+  RegistroAsistenteRoute: RegistroAsistenteRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -32,8 +32,16 @@ function LoginPage() {
     setError(null);
     setLoading(true);
     try {
-      await apiLogin(email, password);
-      navigate({ to: "/backoffice" });
+      const user = await apiLogin(email, password);
+      // Destino según el rol: admin → backoffice, expositor → su panel
+      // (que a su vez muestra "aprobado" o "en espera"), resto → landing.
+      if (user.role === "admin") {
+        navigate({ to: "/backoffice" });
+      } else if (user.role === "expositor") {
+        navigate({ to: "/expositor" });
+      } else {
+        navigate({ to: "/" });
+      }
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
         setError("Correo o contraseña incorrectos.");

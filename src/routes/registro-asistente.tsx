@@ -5,16 +5,16 @@ import { MuchikLogo } from "@/components/muchik/Logo";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ApiError } from "@/integrations/api/client";
-import { registerExpositor } from "@/integrations/api/auth";
+import { registerAsistente } from "@/integrations/api/auth";
 
-export const Route = createFileRoute("/registro")({
+export const Route = createFileRoute("/registro-asistente")({
   head: () => ({
     meta: [
-      { title: "Registro de Expositores — X FIAVIT 2026" },
-      { name: "description", content: "Formulario de registro de expositores para la X Feria Internacional de Turismo FIAVIT 2026 en Trujillo, Perú." },
+      { title: "Registro de Asistentes — Muchik 2026" },
+      { name: "description", content: "Crea tu cuenta para comprar entradas a la feria Muchik 2026 en Trujillo, Perú." },
     ],
   }),
-  component: RegistroExpositorPage,
+  component: RegistroAsistentePage,
 });
 
 // Aplana los errores de DRF ({campo: [mensaje]}) en un texto legible.
@@ -51,18 +51,16 @@ function Field({
   );
 }
 
-function RegistroExpositorPage() {
+function RegistroAsistentePage() {
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     email: "",
     password: "",
     confirmPassword: "",
-    razon_social: "",
-    ruc: "",
     first_name: "",
     last_name: "",
     phone: "",
   });
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -82,19 +80,16 @@ function RegistroExpositorPage() {
 
     setLoading(true);
     try {
-      // Crea la cuenta de expositor (rol 'expositor', pendiente de aprobación)
-      // y guarda los tokens (auto-login)…
-      await registerExpositor({
+      // Crea la cuenta (rol 'user'), persiste los tokens (auto-login)…
+      await registerAsistente({
         email: form.email,
         password: form.password,
-        razon_social: form.razon_social,
-        ruc: form.ruc,
         first_name: form.first_name,
         last_name: form.last_name,
         phone: form.phone,
       });
-      // …y lo lleva a su panel, que mostrará "en espera de aprobación".
-      navigate({ to: "/expositor" });
+      // …y vuelve al home, ya con la sesión iniciada.
+      navigate({ to: "/" });
     } catch (err) {
       setError(formatApiError(err));
       setLoading(false);
@@ -105,7 +100,7 @@ function RegistroExpositorPage() {
   return (
     <div className="min-h-screen bg-muted/30">
       <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-md">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
+        <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
           <Link to="/" className="shrink-0">
             <MuchikLogo />
           </Link>
@@ -118,15 +113,13 @@ function RegistroExpositorPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-4 py-8">
+      <main className="mx-auto max-w-2xl px-4 py-8">
         <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
           <h1 className="text-2xl font-bold text-primary md:text-3xl">
-            X FIAVIT 2026 · Registro de Expositores
+            Muchik 2026 · Registro de Asistentes
           </h1>
           <p className="mt-3 text-sm leading-relaxed text-foreground/80">
-            Crea tu cuenta de empresa expositora. Tu registro quedará{" "}
-            <strong>pendiente de aprobación</strong> por la organización del
-            evento.
+            Crea tu cuenta para comprar entradas y acceder al evento.
           </p>
           <p className="mt-3 text-sm text-foreground/70">
             Todos los campos marcados con
@@ -145,7 +138,7 @@ function RegistroExpositorPage() {
             <Input
               type="email"
               required
-              placeholder="empresa@correo.com"
+              placeholder="tu@correo.com"
               value={form.email}
               onChange={(e) => set("email", e.target.value)}
             />
@@ -173,24 +166,7 @@ function RegistroExpositorPage() {
             />
           </Field>
 
-          <Field label="Razón Social" required>
-            <Input
-              required
-              placeholder="Nombre legal de la empresa"
-              value={form.razon_social}
-              onChange={(e) => set("razon_social", e.target.value)}
-            />
-          </Field>
-
-          <Field label="N° RUC / Doc. Personal" required>
-            <Input
-              required
-              value={form.ruc}
-              onChange={(e) => set("ruc", e.target.value)}
-            />
-          </Field>
-
-          <Field label="Nombres de la persona de contacto" required>
+          <Field label="Nombres" required>
             <Input
               required
               value={form.first_name}
@@ -198,7 +174,7 @@ function RegistroExpositorPage() {
             />
           </Field>
 
-          <Field label="Apellidos de la persona de contacto" required>
+          <Field label="Apellidos" required>
             <Input
               required
               value={form.last_name}
@@ -206,10 +182,9 @@ function RegistroExpositorPage() {
             />
           </Field>
 
-          <Field label="Celular" required>
+          <Field label="Celular" hint="Opcional.">
             <Input
               type="tel"
-              required
               value={form.phone}
               onChange={(e) => set("phone", e.target.value)}
             />
@@ -217,9 +192,9 @@ function RegistroExpositorPage() {
 
           <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs text-muted-foreground">
-              ¿Solo quieres asistir?{" "}
-              <Link to="/registro-asistente" className="font-semibold text-primary underline">
-                Regístrate como asistente
+              ¿Eres una empresa expositora?{" "}
+              <Link to="/registro" className="font-semibold text-primary underline">
+                Regístrate como expositor
               </Link>
             </p>
             <button
@@ -228,7 +203,7 @@ function RegistroExpositorPage() {
               className="rounded-full px-6 py-3 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-brand)] transition hover:opacity-95 disabled:opacity-60"
               style={{ background: "var(--gradient-brand)" }}
             >
-              {loading ? "Enviando registro…" : "Enviar registro"}
+              {loading ? "Creando cuenta…" : "Crear cuenta"}
             </button>
           </div>
         </form>
