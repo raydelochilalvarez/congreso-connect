@@ -13,6 +13,7 @@ export interface AuthUser {
   role_display: string;
   /** Estado del expositor: "pending" | "approved" | "rejected", o null si no es expositor. */
   expositor_status: string | null;
+  phone: string;
   avatar: string | null;
 }
 
@@ -77,6 +78,18 @@ export async function registerExpositor(input: RegisterExpositorInput): Promise<
 /** Devuelve el usuario autenticado actual usando el access token guardado. */
 export async function getCurrentUser(): Promise<AuthUser> {
   return apiRequest<AuthUser>("/api/v1/auth/me/", { auth: true });
+}
+
+/**
+ * Edita el perfil del usuario autenticado (nombre, teléfono, avatar, contraseña).
+ * Se envía como FormData porque puede incluir el archivo de avatar.
+ */
+export async function updateMyProfile(data: FormData): Promise<AuthUser> {
+  return apiRequest<AuthUser>("/api/v1/auth/me/", {
+    method: "PATCH",
+    auth: true,
+    body: data,
+  });
 }
 
 /** Iniciales para el avatar: primera letra de nombre + apellido (fallback a email). */

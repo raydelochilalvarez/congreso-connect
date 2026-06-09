@@ -1,7 +1,8 @@
 import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ClipboardCheck, LogOut, Menu, X } from "lucide-react";
+import { ClipboardCheck, LogOut, Menu, UserCog, X } from "lucide-react";
 import { MuchikLogo } from "@/components/muchik/Logo";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { userInitials } from "@/integrations/api/auth";
 
@@ -115,22 +116,42 @@ function BackofficeLayout() {
             <div className="hidden text-sm font-medium text-foreground/70 lg:block">
               Backoffice
             </div>
-            <div className="ml-auto flex items-center gap-3">
-              <span
-                className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold text-primary-foreground shadow-[var(--shadow-brand)]"
-                style={{ background: "var(--gradient-brand)" }}
-                title={user.full_name}
-              >
-                {userInitials(user)}
-              </span>
-              <button
-                type="button"
-                onClick={onLogout}
-                className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-foreground/80 transition hover:bg-muted sm:px-4 sm:text-sm"
-              >
-                <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline">Cerrar sesión</span>
-              </button>
+            <div className="ml-auto">
+              <Popover>
+                <PopoverTrigger
+                  aria-label="Mi cuenta"
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold text-primary-foreground shadow-[var(--shadow-brand)] transition hover:opacity-95"
+                  style={{ background: "var(--gradient-brand)" }}
+                  title={user.full_name}
+                >
+                  {userInitials(user)}
+                </PopoverTrigger>
+                <PopoverContent align="end" className="w-64 p-3">
+                  <div className="space-y-1">
+                    <div className="px-2 pb-2">
+                      <p className="text-sm font-semibold text-foreground">{user.full_name}</p>
+                      <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+                      <span className="mt-1 inline-block rounded-full bg-secondary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-secondary">
+                        {user.role_display}
+                      </span>
+                    </div>
+                    <div className="h-px bg-border" />
+                    <Link
+                      to="/backoffice/perfil"
+                      className="flex items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-foreground/80 transition hover:bg-muted"
+                    >
+                      <UserCog className="h-4 w-4" /> Editar perfil
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={onLogout}
+                      className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-foreground/80 transition hover:bg-muted"
+                    >
+                      <LogOut className="h-4 w-4" /> Cerrar sesión
+                    </button>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
         </header>

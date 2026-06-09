@@ -56,7 +56,11 @@ export async function apiRequest<T = unknown>(
 ): Promise<T> {
   const finalHeaders = new Headers(headers);
 
-  if (body !== undefined && !finalHeaders.has("Content-Type")) {
+  // FormData (subida de archivos) se envía tal cual: el navegador fija el
+  // Content-Type con el boundary correcto. JSON se serializa.
+  const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
+
+  if (body !== undefined && !isFormData && !finalHeaders.has("Content-Type")) {
     finalHeaders.set("Content-Type", "application/json");
   }
 
@@ -68,7 +72,12 @@ export async function apiRequest<T = unknown>(
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     headers: finalHeaders,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    body:
+      body === undefined
+        ? undefined
+        : isFormData
+          ? (body as FormData)
+          : JSON.stringify(body),
   });
 
   const isJson = response.headers.get("Content-Type")?.includes("application/json");
