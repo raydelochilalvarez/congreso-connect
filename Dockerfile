@@ -10,7 +10,6 @@ ENV VITE_API_URL=$VITE_API_URL
 ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
 ENV VITE_SUPABASE_PUBLISHABLE_KEY=$VITE_SUPABASE_PUBLISHABLE_KEY
 ENV VITE_SUPABASE_PROJECT_ID=$VITE_SUPABASE_PROJECT_ID
-ENV NITRO_PRESET=node-server
 
 COPY package.json package-lock.json ./
 RUN npm ci
@@ -19,7 +18,7 @@ RUN npm run build
 
 FROM node:22-slim
 WORKDIR /app
-COPY --from=builder /app/.output ./.output
+COPY --from=builder /app/dist ./dist
 EXPOSE 3000
 ENV HOST=0.0.0.0
-CMD ["node", ".output/server/index.mjs"]
+CMD ["node", "dist/server/index.mjs"]
