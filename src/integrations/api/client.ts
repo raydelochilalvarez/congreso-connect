@@ -46,6 +46,30 @@ export interface ApiRequestOptions extends Omit<RequestInit, "body"> {
   auth?: boolean;
 }
 
+/** Recolecta solo los textos de una respuesta de error (evita "[object Object]"). */
+function collectStrings(data: unknown): string {
+  if (typeof data === "string") return data;
+  if (Array.isArray(data)) return data.map(collectStrings).filter(Boolean).join(" ");
+  if (data && typeof data === "object") {
+    const obj = data as Record<string, unknown>;
+    if (typeof obj.detail === "string") return obj.detail;
+    return Object.values(obj).map(collectStrings).filter(Boolean).join(" · ");
+  }
+  return "";
+}
+
+/** Devuelve un mensaje legible a partir de un error de la API. */
+export function readableApiError(
+  err: unknown,
+  fallback = "Ocurrió un error. Intenta nuevamente.",
+): string {
+  if (err instanceof ApiError) {
+    return collectStrings(err.data) || err.message || fallback;
+  }
+  if (err instanceof Error && err.message) return err.message;
+  return fallback;
+}
+
 /**
  * Llama al backend Django. Serializa/deserializa JSON, adjunta el token
  * de acceso cuando `auth` es true y lanza `ApiError` en respuestas no-OK.

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getAccessToken } from "@/integrations/api/client";
+import { getAccessToken, clearTokens, ApiError } from "@/integrations/api/client";
 import {
   getCurrentUser,
   logout as apiLogout,
@@ -23,7 +23,11 @@ export function useCurrentUser() {
     }
     getCurrentUser()
       .then((u) => active && setUser(u))
-      .catch(() => active && setUser(null))
+      .catch((err) => {
+        if (active) setUser(null);
+        // Token vencido/inválido → limpiarlo para que la app quede consistente.
+        if (err instanceof ApiError && err.status === 401) clearTokens();
+      })
       .finally(() => active && setLoading(false));
     return () => {
       active = false;

@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { SectionTitle, ArrowBand } from "./SectionTitle";
 import { RegistroDialog } from "./RegistroDialog";
 import { sponsorLogos } from "./sponsor-logos";
-import { getAccessToken, ApiError } from "@/integrations/api/client";
+import { getAccessToken, clearTokens, ApiError, readableApiError } from "@/integrations/api/client";
 import {
   listPublicTicketTypes,
   formatPrice,
@@ -120,13 +120,13 @@ export function Entradas() {
       await createOrder(ticketTypeId, 1);
       navigate({ to: "/mis-entradas" });
     } catch (err) {
-      const msg =
-        err instanceof ApiError && err.data && typeof err.data === "object"
-          ? Object.values(err.data as Record<string, unknown>)
-              .map((v) => (Array.isArray(v) ? v.join(" ") : String(v)))
-              .join(" · ")
-          : "No se pudo procesar la compra. Intenta nuevamente.";
-      setBuyError(msg);
+      // Token vencido/inválido → tratar como sesión cerrada y enviar a registro.
+      if (err instanceof ApiError && err.status === 401) {
+        clearTokens();
+        navigate({ to: "/registro-asistente" });
+        return;
+      }
+      setBuyError(readableApiError(err, "No se pudo procesar la compra. Intenta nuevamente."));
     } finally {
       setBuyingId(null);
     }
