@@ -7,6 +7,7 @@ import {
   ClipboardCheck,
   LogOut,
   Menu,
+  Ticket,
   UserCog,
   X,
 } from "lucide-react";
@@ -26,6 +27,7 @@ const COLLAPSE_KEY = "cc_sidebar_collapsed";
 
 const menu = [
   { to: "/backoffice/expositores", label: "Aprobar expositores", icon: ClipboardCheck },
+  { to: "/backoffice/entradas", label: "Entradas", icon: Ticket },
 ] as const;
 
 function SidebarContent({

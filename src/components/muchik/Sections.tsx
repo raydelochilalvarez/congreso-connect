@@ -1,8 +1,14 @@
+import { useEffect, useState } from "react";
 import { Calendar, MapPin, Ticket, Store, Users, Mic, Radio, Newspaper, Award, Mail, Phone, ArrowRight } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { SectionTitle, ArrowBand } from "./SectionTitle";
 import { RegistroDialog } from "./RegistroDialog";
 import { sponsorLogos } from "./sponsor-logos";
+import {
+  listPublicTicketTypes,
+  formatPrice,
+  type PublicTicketType,
+} from "@/integrations/api/ticket-types";
 
 const Section = ({
   id,
@@ -82,42 +88,63 @@ function Card({ icon, title, body }: { icon: React.ReactNode; title: string; bod
 }
 
 export function Entradas() {
-  const tiers = [
-    { name: "General", price: "S/ 50", desc: "Acceso a la zona de stands y exhibiciones culturales.", popular: false },
-    { name: "Premium", price: "S/ 120", desc: "Acceso completo + Foro Internacional Muchik + cóctel de inauguración.", popular: true },
-    { name: "Estudiante", price: "S/ 25", desc: "Acceso general con presentación de carnet universitario vigente.", popular: false },
-  ];
+  const [tiers, setTiers] = useState<PublicTicketType[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    listPublicTicketTypes()
+      .then((data) => active && setTiers(data))
+      .catch(() => active && setTiers([]))
+      .finally(() => active && setLoading(false));
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <Section id="entradas" className="border-t border-border/60">
       <SectionTitle eyebrow="Público general" title="Entradas" description="Vive Muchik 2026. Elige tu experiencia y asegura tu lugar." />
-      <div className="mt-12 grid gap-6 md:grid-cols-3">
-        {tiers.map((t) => (
-          <div
-            key={t.name}
-            className={`relative rounded-2xl border p-7 transition ${
-              t.popular
-                ? "border-secondary bg-card shadow-[var(--shadow-brand)]"
-                : "border-border bg-card hover:border-secondary/40"
-            }`}
-          >
-            {t.popular && (
-              <span className="absolute -top-3 left-7 rounded-full bg-secondary px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-secondary-foreground">
-                Más elegida
-              </span>
-            )}
-            <Ticket className="h-7 w-7 text-secondary" />
-            <h3 className="mt-4 text-2xl font-bold italic text-primary">{t.name}</h3>
-            <p className="mt-1 text-3xl font-bold text-foreground">{t.price}</p>
-            <p className="mt-3 text-sm text-muted-foreground">{t.desc}</p>
-            <RegistroDialog
-              className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-primary-foreground"
-              style={{ background: "var(--gradient-brand)" }}
+      {loading ? (
+        <div className="mt-12 text-center text-sm text-muted-foreground">Cargando entradas…</div>
+      ) : tiers.length === 0 ? (
+        <div className="mt-12 text-center text-sm text-muted-foreground">
+          Las entradas estarán disponibles muy pronto.
+        </div>
+      ) : (
+        <div className="mt-12 grid gap-6 md:grid-cols-3">
+          {tiers.map((t) => (
+            <div
+              key={t.id}
+              className={`relative rounded-2xl border p-7 transition ${
+                t.is_popular
+                  ? "border-secondary bg-card shadow-[var(--shadow-brand)]"
+                  : "border-border bg-card hover:border-secondary/40"
+              }`}
             >
-              Comprar entrada <ArrowRight className="h-4 w-4" />
-            </RegistroDialog>
-          </div>
-        ))}
-      </div>
+              {t.is_popular && (
+                <span className="absolute -top-3 left-7 rounded-full bg-secondary px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-secondary-foreground">
+                  Más elegida
+                </span>
+              )}
+              <Ticket className="h-7 w-7 text-secondary" />
+              <h3 className="mt-4 text-2xl font-bold italic text-primary">{t.name}</h3>
+              <p className="mt-1 text-3xl font-bold text-foreground">
+                {formatPrice(t.price, t.currency)}
+              </p>
+              {t.description && (
+                <p className="mt-3 text-sm text-muted-foreground">{t.description}</p>
+              )}
+              <RegistroDialog
+                className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-primary-foreground"
+                style={{ background: "var(--gradient-brand)" }}
+              >
+                Comprar entrada <ArrowRight className="h-4 w-4" />
+              </RegistroDialog>
+            </div>
+          ))}
+        </div>
+      )}
     </Section>
   );
 }
