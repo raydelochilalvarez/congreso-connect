@@ -1,6 +1,15 @@
-import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ClipboardCheck, LogOut, Menu, UserCog, X } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  ClipboardCheck,
+  LogOut,
+  Menu,
+  UserCog,
+  X,
+} from "lucide-react";
 import { MuchikLogo } from "@/components/muchik/Logo";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -13,46 +22,93 @@ export const Route = createFileRoute("/backoffice")({
   component: BackofficeLayout,
 });
 
+const COLLAPSE_KEY = "cc_sidebar_collapsed";
+
 const menu = [
   { to: "/backoffice/expositores", label: "Aprobar expositores", icon: ClipboardCheck },
 ] as const;
 
-function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
+function SidebarContent({
+  collapsed,
+  onNavigate,
+  onToggleCollapse,
+}: {
+  collapsed: boolean;
+  onNavigate?: () => void;
+  onToggleCollapse?: () => void;
+}) {
   return (
     <div className="flex h-full flex-col">
-      <div className="flex h-16 shrink-0 items-center border-b border-border px-5">
-        <Link to="/" onClick={onNavigate}>
-          <MuchikLogo />
-        </Link>
+      <div
+        className={`flex h-16 shrink-0 items-center border-b border-border ${
+          collapsed ? "justify-center px-2" : "justify-between px-5"
+        }`}
+      >
+        {!collapsed && (
+          <Link to="/" onClick={onNavigate}>
+            <MuchikLogo />
+          </Link>
+        )}
+        {onToggleCollapse && (
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            aria-label={collapsed ? "Expandir menú" : "Recoger menú"}
+            className="rounded-md p-1.5 text-foreground/60 transition hover:bg-muted"
+          >
+            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </button>
+        )}
       </div>
+
       <nav className="flex-1 space-y-1 p-3">
         {menu.map(({ to, label, icon: Icon }) => (
           <Link
             key={to}
             to={to}
             onClick={onNavigate}
+            title={collapsed ? label : undefined}
             activeProps={{ className: "bg-secondary/10 text-secondary" }}
-            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground/70 transition hover:bg-muted"
+            className={`flex items-center gap-3 rounded-xl py-2.5 text-sm font-medium text-foreground/70 transition hover:bg-muted ${
+              collapsed ? "justify-center px-2" : "px-3"
+            }`}
           >
             <Icon className="h-4 w-4 shrink-0" />
-            {label}
+            {!collapsed && label}
           </Link>
         ))}
       </nav>
-      <div className="border-t border-border p-3">
-        <p className="px-3 py-2 text-xs text-muted-foreground">Panel de administración</p>
-      </div>
+
+      {!collapsed && (
+        <div className="border-t border-border p-3">
+          <p className="px-3 py-2 text-xs text-muted-foreground">Panel de administración</p>
+        </div>
+      )}
     </div>
   );
 }
 
 function BackofficeLayout() {
   const navigate = useNavigate();
+  const router = useRouter();
   const { user, loading, logout } = useCurrentUser();
   const [drawer, setDrawer] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
-  // Guarda de acceso (UX): solo admin. La seguridad real la exige el backend
-  // en cada endpoint; esto solo evita mostrar la vista a quien no corresponde.
+  // Restaura el estado recogido/extendido (cliente; evita desajuste de hidratación).
+  useEffect(() => {
+    setCollapsed(localStorage.getItem(COLLAPSE_KEY) === "1");
+  }, []);
+
+  function toggleCollapse() {
+    setCollapsed((c) => {
+      const next = !c;
+      localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0");
+      return next;
+    });
+  }
+
+  // Guarda de acceso (UX): solo admin. La seguridad real la exige el backend.
   useEffect(() => {
     if (!loading && (!user || user.role !== "admin")) {
       navigate({ to: "/" });
@@ -74,10 +130,14 @@ function BackofficeLayout() {
 
   return (
     <div className="min-h-screen bg-muted/30 lg:flex">
-      {/* Sidebar fijo (escritorio) */}
-      <aside className="hidden w-64 shrink-0 border-r border-border bg-background lg:block">
+      {/* Sidebar fijo (escritorio), recogible */}
+      <aside
+        className={`hidden shrink-0 border-r border-border bg-background transition-[width] duration-200 lg:block ${
+          collapsed ? "w-16" : "w-64"
+        }`}
+      >
         <div className="sticky top-0 h-screen">
-          <SidebarContent />
+          <SidebarContent collapsed={collapsed} onToggleCollapse={toggleCollapse} />
         </div>
       </aside>
 
@@ -97,7 +157,7 @@ function BackofficeLayout() {
             >
               <X className="h-5 w-5" />
             </button>
-            <SidebarContent onNavigate={() => setDrawer(false)} />
+            <SidebarContent collapsed={false} onNavigate={() => setDrawer(false)} />
           </aside>
         </div>
       )}
@@ -105,17 +165,27 @@ function BackofficeLayout() {
       {/* Columna de contenido */}
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-md">
-          <div className="flex items-center justify-between gap-3 px-4 py-3 lg:px-8">
+          <div className="flex items-center gap-2 px-4 py-3 lg:px-6">
+            {/* Atrás (todas las vistas, útil en móvil) */}
             <button
+              type="button"
+              onClick={() => router.history.back()}
+              aria-label="Atrás"
+              className="rounded-md p-2 text-foreground/70 transition hover:bg-muted"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+
+            {/* Abrir menú (solo móvil) */}
+            <button
+              type="button"
               onClick={() => setDrawer(true)}
               aria-label="Abrir menú"
-              className="rounded-md p-2 text-primary lg:hidden"
+              className="rounded-md p-2 text-primary transition hover:bg-muted lg:hidden"
             >
               <Menu className="h-5 w-5" />
             </button>
-            <div className="hidden text-sm font-medium text-foreground/70 lg:block">
-              Backoffice
-            </div>
+
             <div className="ml-auto">
               <Popover>
                 <PopoverTrigger

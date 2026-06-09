@@ -20,11 +20,24 @@ function mediaUrl(avatar: string | null): string | null {
   return avatar.startsWith("http") ? avatar : `${API_URL}${avatar}`;
 }
 
+const FIELD_LABELS: Record<string, string> = {
+  current_password: "Contraseña actual",
+  new_password: "Contraseña nueva",
+  first_name: "Nombres",
+  last_name: "Apellidos",
+  phone: "Celular",
+  avatar: "Avatar",
+  non_field_errors: "",
+  detail: "",
+};
+
 function formatApiError(err: unknown): string {
   if (err instanceof ApiError && err.data && typeof err.data === "object") {
-    const parts = Object.entries(err.data as Record<string, unknown>).map(
-      ([campo, val]) => `${campo}: ${Array.isArray(val) ? val.join(" ") : String(val)}`,
-    );
+    const parts = Object.entries(err.data as Record<string, unknown>).map(([campo, val]) => {
+      const msg = Array.isArray(val) ? val.join(" ") : String(val);
+      const label = FIELD_LABELS[campo] ?? campo;
+      return label ? `${label}: ${msg}` : msg;
+    });
     if (parts.length) return parts.join(" · ");
   }
   if (err instanceof Error) return err.message;
