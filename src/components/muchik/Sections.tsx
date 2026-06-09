@@ -96,6 +96,7 @@ export function Entradas() {
   const [loading, setLoading] = useState(true);
   const [buyingId, setBuyingId] = useState<number | null>(null);
   const [buyError, setBuyError] = useState<string | null>(null);
+  const [authPromptOpen, setAuthPromptOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -110,9 +111,9 @@ export function Entradas() {
 
   async function buy(ticketTypeId: number) {
     setBuyError(null);
-    // Sin sesión → a registrarse como asistente.
+    // Sin sesión → pedir iniciar sesión o registrarse (popup).
     if (!getAccessToken()) {
-      navigate({ to: "/registro-asistente" });
+      setAuthPromptOpen(true);
       return;
     }
     setBuyingId(ticketTypeId);
@@ -120,10 +121,10 @@ export function Entradas() {
       await createOrder(ticketTypeId, 1);
       navigate({ to: "/mis-entradas" });
     } catch (err) {
-      // Token vencido/inválido → tratar como sesión cerrada y enviar a registro.
+      // Token vencido/inválido → tratar como sesión cerrada y mostrar el popup.
       if (err instanceof ApiError && err.status === 401) {
         clearTokens();
-        navigate({ to: "/registro-asistente" });
+        setAuthPromptOpen(true);
         return;
       }
       setBuyError(readableApiError(err, "No se pudo procesar la compra. Intenta nuevamente."));
@@ -192,6 +193,33 @@ export function Entradas() {
           ))}
         </div>
       )}
+
+      <Dialog open={authPromptOpen} onOpenChange={setAuthPromptOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Inicia sesión para comprar</DialogTitle>
+            <DialogDescription>
+              Para comprar tu entrada primero inicia sesión. Si aún no tienes
+              cuenta, regístrate; es rápido.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+            <button
+              onClick={() => navigate({ to: "/login" })}
+              className="flex-1 rounded-full border border-border px-5 py-2.5 text-sm font-semibold text-foreground/80 transition hover:bg-muted"
+            >
+              Iniciar sesión
+            </button>
+            <button
+              onClick={() => navigate({ to: "/registro-asistente" })}
+              className="flex-1 rounded-full px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-brand)] transition hover:opacity-95"
+              style={{ background: "var(--gradient-brand)" }}
+            >
+              Registrarme
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Section>
   );
 }
