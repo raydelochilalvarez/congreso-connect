@@ -1,11 +1,11 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouter } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import {
   ArrowLeft,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   ClipboardCheck,
-  ClipboardList,
   LogOut,
   Menu,
   Receipt,
@@ -14,6 +14,7 @@ import {
   UserCog,
   X,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { MuchikLogo } from "@/components/muchik/Logo";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -28,13 +29,74 @@ export const Route = createFileRoute("/backoffice")({
 
 const COLLAPSE_KEY = "cc_sidebar_collapsed";
 
-const menu = [
+type NavLeaf = { to: string; label: string; icon: LucideIcon };
+type NavGroupItem = { label: string; icon: LucideIcon; children: NavLeaf[] };
+type NavItem = NavLeaf | NavGroupItem;
+
+const menu: NavItem[] = [
+  {
+    label: "Reservas",
+    icon: Receipt,
+    children: [
+      { to: "/backoffice/ordenes", label: "Entradas", icon: Ticket },
+      { to: "/backoffice/reservas", label: "Stands", icon: Store },
+    ],
+  },
   { to: "/backoffice/expositores", label: "Aprobar expositores", icon: ClipboardCheck },
-  { to: "/backoffice/entradas", label: "Entradas", icon: Ticket },
-  { to: "/backoffice/stands", label: "Stands", icon: Store },
-  { to: "/backoffice/reservas", label: "Reservas", icon: ClipboardList },
-  { to: "/backoffice/ordenes", label: "Órdenes", icon: Receipt },
-] as const;
+  { to: "/backoffice/entradas", label: "Catálogo de entradas", icon: Ticket },
+  { to: "/backoffice/stands", label: "Catálogo de stands", icon: Store },
+];
+
+function NavLink({
+  item,
+  collapsed,
+  onNavigate,
+}: {
+  item: NavLeaf;
+  collapsed: boolean;
+  onNavigate?: () => void;
+}) {
+  const Icon = item.icon;
+  return (
+    <Link
+      to={item.to}
+      onClick={onNavigate}
+      title={collapsed ? item.label : undefined}
+      activeProps={{ className: "bg-secondary/10 text-secondary" }}
+      className={`flex items-center gap-3 rounded-xl py-2.5 text-sm font-medium text-foreground/70 transition hover:bg-muted ${
+        collapsed ? "justify-center px-2" : "px-3"
+      }`}
+    >
+      <Icon className="h-4 w-4 shrink-0" />
+      {!collapsed && item.label}
+    </Link>
+  );
+}
+
+function NavGroup({ item, onNavigate }: { item: NavGroupItem; onNavigate?: () => void }) {
+  const [open, setOpen] = useState(true);
+  const Icon = item.icon;
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground/70 transition hover:bg-muted"
+      >
+        <Icon className="h-4 w-4 shrink-0" />
+        <span className="flex-1 text-left">{item.label}</span>
+        <ChevronDown className={`h-4 w-4 transition-transform ${open ? "" : "-rotate-90"}`} />
+      </button>
+      {open && (
+        <div className="ml-3 mt-1 space-y-1 border-l border-border pl-2">
+          {item.children.map((c) => (
+            <NavLink key={c.to} item={c} collapsed={false} onNavigate={onNavigate} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function SidebarContent({
   collapsed,
@@ -70,21 +132,21 @@ function SidebarContent({
       </div>
 
       <nav className="flex-1 space-y-1 p-3">
-        {menu.map(({ to, label, icon: Icon }) => (
-          <Link
-            key={to}
-            to={to}
-            onClick={onNavigate}
-            title={collapsed ? label : undefined}
-            activeProps={{ className: "bg-secondary/10 text-secondary" }}
-            className={`flex items-center gap-3 rounded-xl py-2.5 text-sm font-medium text-foreground/70 transition hover:bg-muted ${
-              collapsed ? "justify-center px-2" : "px-3"
-            }`}
-          >
-            <Icon className="h-4 w-4 shrink-0" />
-            {!collapsed && label}
-          </Link>
-        ))}
+        {menu.map((item) =>
+          "children" in item ? (
+            collapsed ? (
+              <Fragment key={item.label}>
+                {item.children.map((c) => (
+                  <NavLink key={c.to} item={c} collapsed onNavigate={onNavigate} />
+                ))}
+              </Fragment>
+            ) : (
+              <NavGroup key={item.label} item={item} onNavigate={onNavigate} />
+            )
+          ) : (
+            <NavLink key={item.to} item={item} collapsed={collapsed} onNavigate={onNavigate} />
+          ),
+        )}
       </nav>
 
       {!collapsed && (
