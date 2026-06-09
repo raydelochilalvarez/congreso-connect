@@ -11,6 +11,11 @@ import {
   formatPrice,
   type PublicTicketType,
 } from "@/integrations/api/ticket-types";
+import {
+  listPublicStandTypes,
+  splitIncludes,
+  type PublicStandType,
+} from "@/integrations/api/stand-types";
 import { createOrder } from "@/integrations/api/orders";
 
 const Section = ({
@@ -225,31 +230,54 @@ export function Entradas() {
 }
 
 export function Stand() {
+  const [stands, setStands] = useState<PublicStandType[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    listPublicStandTypes()
+      .then((data) => active && setStands(data))
+      .catch(() => active && setStands([]))
+      .finally(() => active && setLoading(false));
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <Section id="stand">
       <ArrowBand>Stands · Exhibición Comercial</ArrowBand>
-      <div className="grid gap-6 md:grid-cols-2">
-        {[
-          { size: "6 m²", dim: "3m × 2m × 2.5m altura", price: "US$ 1,500 + IGV" },
-          { size: "16 m²", dim: "4m × 4m × 2.5m altura", price: "US$ 3,500 + IGV" },
-        ].map((s) => (
-          <div key={s.size} className="relative overflow-hidden rounded-2xl border border-border bg-card p-7">
-            <Store className="h-8 w-8 text-secondary" />
-            <h3 className="mt-3 text-3xl font-bold italic text-primary">Stand {s.size}</h3>
-            <p className="mt-1 text-muted-foreground">{s.dim}</p>
-            <p className="mt-4 text-2xl font-bold text-foreground">{s.price}</p>
-            <ul className="mt-4 space-y-1.5 text-sm text-muted-foreground">
-              <li>· Mesa, sillas, friso institucional</li>
-              <li>· WiFi, mantelería, tomacorrientes</li>
-              <li>· Personal de logística</li>
-              <li>· Cóctel de inauguración</li>
-            </ul>
-            <RegistroDialog className="mt-6 inline-flex items-center gap-2 rounded-full border border-primary/20 px-5 py-2.5 text-sm font-semibold text-primary transition hover:bg-primary/5">
-              Reservar stand <ArrowRight className="h-4 w-4" />
-            </RegistroDialog>
-          </div>
-        ))}
-      </div>
+      {loading ? (
+        <div className="text-center text-sm text-muted-foreground">Cargando stands…</div>
+      ) : stands.length === 0 ? (
+        <div className="text-center text-sm text-muted-foreground">
+          Los stands estarán disponibles muy pronto.
+        </div>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2">
+          {stands.map((s) => (
+            <div key={s.id} className="relative overflow-hidden rounded-2xl border border-border bg-card p-7">
+              <Store className="h-8 w-8 text-secondary" />
+              <h3 className="mt-3 text-3xl font-bold italic text-primary">Stand {s.name}</h3>
+              {s.dimensions && <p className="mt-1 text-muted-foreground">{s.dimensions}</p>}
+              <p className="mt-4 text-2xl font-bold text-foreground">
+                {formatPrice(s.price, s.currency)}
+                {s.price_plus_igv && " + IGV"}
+              </p>
+              {splitIncludes(s.includes).length > 0 && (
+                <ul className="mt-4 space-y-1.5 text-sm text-muted-foreground">
+                  {splitIncludes(s.includes).map((line, i) => (
+                    <li key={i}>· {line}</li>
+                  ))}
+                </ul>
+              )}
+              <RegistroDialog className="mt-6 inline-flex items-center gap-2 rounded-full border border-primary/20 px-5 py-2.5 text-sm font-semibold text-primary transition hover:bg-primary/5">
+                Reservar stand <ArrowRight className="h-4 w-4" />
+              </RegistroDialog>
+            </div>
+          ))}
+        </div>
+      )}
     </Section>
   );
 }

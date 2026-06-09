@@ -8,6 +8,7 @@ import {
   LogOut,
   Menu,
   Receipt,
+  Store,
   Ticket,
   UserCog,
   X,
@@ -29,6 +30,7 @@ const COLLAPSE_KEY = "cc_sidebar_collapsed";
 const menu = [
   { to: "/backoffice/expositores", label: "Aprobar expositores", icon: ClipboardCheck },
   { to: "/backoffice/entradas", label: "Entradas", icon: Ticket },
+  { to: "/backoffice/stands", label: "Stands", icon: Store },
   { to: "/backoffice/ordenes", label: "Órdenes", icon: Receipt },
 ] as const;
 
