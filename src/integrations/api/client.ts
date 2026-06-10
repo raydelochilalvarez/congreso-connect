@@ -4,6 +4,12 @@
 
 const API_BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/$/, "");
 
+/** Convierte una ruta de media (ej. "/media/...") en URL absoluta del backend. */
+export function mediaUrl(path: string | null): string | null {
+  if (!path) return null;
+  return path.startsWith("http") ? path : `${API_BASE_URL}${path}`;
+}
+
 const ACCESS_TOKEN_KEY = "cc_access_token";
 const REFRESH_TOKEN_KEY = "cc_refresh_token";
 

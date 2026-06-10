@@ -8,6 +8,7 @@ import {
   ClipboardCheck,
   LogOut,
   Menu,
+  Mic,
   Receipt,
   Store,
   Ticket,
@@ -45,6 +46,7 @@ const menu: NavItem[] = [
   { to: "/backoffice/expositores", label: "Aprobar expositores", icon: ClipboardCheck },
   { to: "/backoffice/entradas", label: "Catálogo de entradas", icon: Ticket },
   { to: "/backoffice/stands", label: "Catálogo de stands", icon: Store },
+  { to: "/backoffice/disertantes", label: "Disertantes", icon: Mic },
 ];
 
 function NavLink({
@@ -74,7 +76,7 @@ function NavLink({
 }
 
 function NavGroup({ item, onNavigate }: { item: NavGroupItem; onNavigate?: () => void }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const Icon = item.icon;
   return (
     <div>

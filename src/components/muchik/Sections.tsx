@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { SectionTitle, ArrowBand } from "./SectionTitle";
 import { RegistroDialog } from "./RegistroDialog";
 import { sponsorLogos } from "./sponsor-logos";
-import { getAccessToken, clearTokens, ApiError, readableApiError } from "@/integrations/api/client";
+import { getAccessToken, clearTokens, ApiError, readableApiError, mediaUrl } from "@/integrations/api/client";
 import {
   listPublicTicketTypes,
   formatPrice,
@@ -17,6 +17,11 @@ import {
   type PublicStandType,
 } from "@/integrations/api/stand-types";
 import { createOrder } from "@/integrations/api/orders";
+import {
+  listPublicSpeakers,
+  speakerInitials,
+  type PublicSpeaker,
+} from "@/integrations/api/speakers";
 
 const Section = ({
   id,
@@ -369,41 +374,37 @@ export function RuedaNegocios() {
   );
 }
 
+function SpeakerAvatar({ speaker, size }: { speaker: PublicSpeaker; size: "lg" | "md" }) {
+  const cls = size === "lg" ? "h-20 w-20" : "h-16 w-16";
+  const photo = mediaUrl(speaker.photo);
+  if (photo) {
+    return <img src={photo} alt={speaker.name} className={`${cls} shrink-0 rounded-full object-cover`} />;
+  }
+  return (
+    <div
+      className={`${cls} flex shrink-0 items-center justify-center rounded-full text-xl font-bold italic text-white`}
+      style={{ background: "var(--gradient-brand)" }}
+    >
+      {speakerInitials(speaker.name)}
+    </div>
+  );
+}
+
 export function Conferencia() {
-  const speakers = [
-    {
-      name: "María Fernández",
-      role: "Mintur Chile · País invitado",
-      initials: "MF",
-      position: "Directora de Promoción Internacional · Subsecretaría de Turismo de Chile",
-      bio: "Más de 15 años liderando estrategias de promoción turística para Chile en mercados de Latinoamérica, Europa y Asia. Ha sido clave en el posicionamiento de la marca país y en alianzas con operadores internacionales para diversificar la oferta cultural y de naturaleza.",
-      topic: "Chile como país invitado: oportunidades de integración turística con el norte del Perú.",
-    },
-    {
-      name: "Carlos Quispe",
-      role: "CANATUR · Cámara Nac. de Turismo",
-      initials: "CQ",
-      position: "Vicepresidente · Cámara Nacional de Turismo del Perú (CANATUR)",
-      bio: "Empresario hotelero con tres décadas de experiencia en el sector. Ha impulsado políticas público-privadas para el desarrollo del turismo receptivo y la formalización de pymes turísticas a nivel nacional.",
-      topic: "Hoja de ruta del turismo peruano 2026-2030: inversión, conectividad y sostenibilidad.",
-    },
-    {
-      name: "Lucía Vargas",
-      role: "Promperú · Estrategia Norte",
-      initials: "LV",
-      position: "Gerente Regional Norte · PROMPERÚ",
-      bio: "Especialista en marketing turístico y desarrollo de destinos. Lidera la estrategia macrorregional del norte peruano, articulando a La Libertad, Lambayeque, Piura y Tumbes en una propuesta integrada de cultura Muchik, gastronomía y playas.",
-      topic: "Marca Norte: cómo construir un destino competitivo desde la identidad Muchik.",
-    },
-    {
-      name: "Andrés Soto",
-      role: "Costa del Sol Wyndham",
-      initials: "AS",
-      position: "Director Comercial · Costa del Sol Wyndham Hoteles",
-      bio: "Ejecutivo con amplia trayectoria en hotelería 5★ y MICE en el Perú. Ha desarrollado productos premium para turismo corporativo, eventos y experiencias culturales en la macrorregión norte.",
-      topic: "Turismo MICE en Trujillo: infraestructura, servicios y experiencias para el viajero corporativo.",
-    },
-  ];
+  const [speakers, setSpeakers] = useState<PublicSpeaker[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    listPublicSpeakers()
+      .then((data) => active && setSpeakers(data))
+      .catch(() => active && setSpeakers([]))
+      .finally(() => active && setLoading(false));
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <Section id="conferencia">
       <ArrowBand>Foro Internacional Muchik</ArrowBand>
@@ -421,69 +422,75 @@ export function Conferencia() {
             Reservar mi cupo <ArrowRight className="h-4 w-4" />
           </RegistroDialog>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {speakers.map((s) => (
-            <Dialog key={s.name}>
-              <DialogTrigger asChild>
-                <button
-                  type="button"
-                  className="flex w-full items-center gap-5 rounded-2xl border border-border bg-card p-5 text-left transition hover:border-secondary/40 hover:shadow-md"
-                >
-                  <div
-                    className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full text-xl font-bold italic text-white"
-                    style={{ background: "var(--gradient-brand)" }}
+        {loading ? (
+          <div className="flex items-center justify-center text-sm text-muted-foreground">
+            Cargando disertantes…
+          </div>
+        ) : speakers.length === 0 ? (
+          <div className="flex items-center justify-center text-sm text-muted-foreground">
+            Pronto anunciaremos a los disertantes.
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2">
+            {speakers.map((s) => (
+              <Dialog key={s.id}>
+                <DialogTrigger asChild>
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-5 rounded-2xl border border-border bg-card p-5 text-left transition hover:border-secondary/40 hover:shadow-md"
                   >
-                    {s.initials}
-                  </div>
-                  <div>
-                    <p className="text-lg font-semibold text-foreground">{s.name}</p>
-                    <p className="text-sm text-muted-foreground">{s.role}</p>
-                  </div>
-                </button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-lg">
-                <DialogHeader>
-                  <div className="flex items-center gap-4">
-                    <div
-                      className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-xl font-bold italic text-white"
+                    <SpeakerAvatar speaker={s} size="lg" />
+                    <div>
+                      <p className="text-lg font-semibold text-foreground">{s.name}</p>
+                      <p className="text-sm text-muted-foreground">{s.role}</p>
+                    </div>
+                  </button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-lg">
+                  <DialogHeader>
+                    <div className="flex items-center gap-4">
+                      <SpeakerAvatar speaker={s} size="md" />
+                      <div>
+                        <DialogTitle className="text-2xl font-bold italic text-primary">
+                          {s.name}
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground">
+                          {s.role}
+                        </DialogDescription>
+                      </div>
+                    </div>
+                  </DialogHeader>
+                  <div className="mt-2 space-y-4">
+                    {s.position && (
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-wider text-secondary">Cargo</p>
+                        <p className="mt-1 text-sm text-foreground">{s.position}</p>
+                      </div>
+                    )}
+                    {s.bio && (
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-wider text-secondary">Biografía</p>
+                        <p className="mt-1 text-sm text-muted-foreground">{s.bio}</p>
+                      </div>
+                    )}
+                    {s.topic && (
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-wider text-secondary">Tema en el Foro</p>
+                        <p className="mt-1 text-sm text-muted-foreground">{s.topic}</p>
+                      </div>
+                    )}
+                    <RegistroDialog
+                      className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-primary-foreground"
                       style={{ background: "var(--gradient-brand)" }}
                     >
-                      {s.initials}
-                    </div>
-                    <div>
-                      <DialogTitle className="text-2xl font-bold italic text-primary">
-                        {s.name}
-                      </DialogTitle>
-                      <DialogDescription className="text-sm text-muted-foreground">
-                        {s.role}
-                      </DialogDescription>
-                    </div>
+                      Reservar mi cupo <ArrowRight className="h-4 w-4" />
+                    </RegistroDialog>
                   </div>
-                </DialogHeader>
-                <div className="mt-2 space-y-4">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-secondary">Cargo</p>
-                    <p className="mt-1 text-sm text-foreground">{s.position}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-secondary">Biografía</p>
-                    <p className="mt-1 text-sm text-muted-foreground">{s.bio}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-secondary">Tema en el Foro</p>
-                    <p className="mt-1 text-sm text-muted-foreground">{s.topic}</p>
-                  </div>
-                  <RegistroDialog
-                    className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-primary-foreground"
-                    style={{ background: "var(--gradient-brand)" }}
-                  >
-                    Reservar mi cupo <ArrowRight className="h-4 w-4" />
-                  </RegistroDialog>
-                </div>
-              </DialogContent>
-            </Dialog>
-          ))}
-        </div>
+                </DialogContent>
+              </Dialog>
+            ))}
+          </div>
+        )}
       </div>
     </Section>
   );
