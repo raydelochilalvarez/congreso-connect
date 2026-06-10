@@ -92,6 +92,11 @@ export async function updateMyProfile(data: FormData): Promise<AuthUser> {
   });
 }
 
+/** Pide al backend que envíe el código QR del asistente a su correo. */
+export async function sendMyQr(): Promise<void> {
+  await apiRequest("/api/v1/auth/me/send-qr/", { method: "POST", auth: true });
+}
+
 /** Iniciales para el avatar: primera letra de nombre + apellido (fallback a email). */
 export function userInitials(user: Pick<AuthUser, "first_name" | "last_name" | "full_name" | "email">): string {
   const a = (user.first_name || "").trim().charAt(0);

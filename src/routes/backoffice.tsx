@@ -5,8 +5,10 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Award,
   ClipboardCheck,
   LogOut,
+  MapPin,
   Menu,
   Mic,
   Receipt,
@@ -47,6 +49,8 @@ const menu: NavItem[] = [
   { to: "/backoffice/entradas", label: "Catálogo de entradas", icon: Ticket },
   { to: "/backoffice/stands", label: "Catálogo de stands", icon: Store },
   { to: "/backoffice/disertantes", label: "Disertantes", icon: Mic },
+  { to: "/backoffice/patrocinadores", label: "Patrocinadores", icon: Award },
+  { to: "/backoffice/evento", label: "Sede & Fechas", icon: MapPin },
 ];
 
 function NavLink({

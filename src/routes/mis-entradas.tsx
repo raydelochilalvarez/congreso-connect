@@ -1,8 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Loader2, Ticket } from "lucide-react";
+import { ArrowLeft, Loader2, QrCode, Ticket } from "lucide-react";
 import { MuchikLogo } from "@/components/muchik/Logo";
-import { getAccessToken } from "@/integrations/api/client";
+import { getAccessToken, readableApiError } from "@/integrations/api/client";
+import { sendMyQr } from "@/integrations/api/auth";
 import { formatPrice } from "@/integrations/api/ticket-types";
 import { listMyOrders, type Order, type OrderStatus } from "@/integrations/api/orders";
 
@@ -24,6 +25,21 @@ function MisEntradasPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sendingQr, setSendingQr] = useState(false);
+  const [qrMsg, setQrMsg] = useState<string | null>(null);
+
+  async function onSendQr() {
+    setSendingQr(true);
+    setQrMsg(null);
+    try {
+      await sendMyQr();
+      setQrMsg("Te enviamos tu código QR al correo.");
+    } catch (err) {
+      setQrMsg(readableApiError(err, "No se pudo enviar el QR."));
+    } finally {
+      setSendingQr(false);
+    }
+  }
 
   useEffect(() => {
     if (!getAccessToken()) {
@@ -66,6 +82,29 @@ function MisEntradasPage() {
             <p className="text-sm text-foreground/70">Tus compras y su estado.</p>
           </div>
         </div>
+
+        {/* Enviar mi QR de asistente por correo */}
+        <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
+              <QrCode className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-foreground">Tu código QR de asistente</p>
+              <p className="text-xs text-muted-foreground">Te lo enviamos al correo para el ingreso al evento.</p>
+            </div>
+          </div>
+          <button
+            onClick={onSendQr}
+            disabled={sendingQr}
+            className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-brand)] transition hover:opacity-95 disabled:opacity-60"
+            style={{ background: "var(--gradient-brand)" }}
+          >
+            {sendingQr ? <Loader2 className="h-4 w-4 animate-spin" /> : <QrCode className="h-4 w-4" />}
+            Enviar mi QR al correo
+          </button>
+        </div>
+        {qrMsg && <p className="mt-2 text-sm text-secondary">{qrMsg}</p>}
 
         {error && (
           <div className="mt-6 rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">

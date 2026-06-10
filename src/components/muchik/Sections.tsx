@@ -4,7 +4,6 @@ import { Calendar, MapPin, Ticket, Store, Users, Mic, Radio, Newspaper, Award, M
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { SectionTitle, ArrowBand } from "./SectionTitle";
 import { RegistroDialog } from "./RegistroDialog";
-import { sponsorLogos } from "./sponsor-logos";
 import { getAccessToken, clearTokens, ApiError, readableApiError, mediaUrl } from "@/integrations/api/client";
 import {
   listPublicTicketTypes,
@@ -22,6 +21,13 @@ import {
   speakerInitials,
   type PublicSpeaker,
 } from "@/integrations/api/speakers";
+import { listPublicSponsors, type PublicSponsor } from "@/integrations/api/sponsors";
+import {
+  getPublicEventConfig,
+  mapEmbedUrl,
+  mapDirectionsUrl,
+  type EventConfig,
+} from "@/integrations/api/event-config";
 
 const Section = ({
   id,
@@ -38,6 +44,27 @@ const Section = ({
 );
 
 export function Ubicacion() {
+  const [cfg, setCfg] = useState<EventConfig | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    getPublicEventConfig()
+      .then((data) => active && setCfg(data))
+      .catch(() => {})
+      .finally(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  if (!cfg) {
+    return (
+      <Section id="ubicacion">
+        <div className="text-center text-sm text-muted-foreground">Cargando…</div>
+      </Section>
+    );
+  }
+
   return (
     <Section id="ubicacion">
       <div className="grid items-center gap-10 lg:grid-cols-2">
@@ -46,17 +73,14 @@ export function Ubicacion() {
             Sede & Fecha
           </span>
           <h2 className="mt-4 text-4xl font-bold italic tracking-tight text-primary sm:text-5xl">
-            Trujillo, Perú
+            {cfg.location_headline}
           </h2>
-          <p className="mt-3 text-lg text-muted-foreground">
-            Nueva sede premium 5★ · Costa del Sol Wyndham Trujillo. Un espacio
-            ideal para reuniones estratégicas, networking y experiencias culturales.
-          </p>
+          <p className="mt-3 text-lg text-muted-foreground">{cfg.location_description}</p>
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
-            <Card icon={<Calendar className="h-5 w-5" />} title="Fechas" body="21, 22 y 23 de octubre 2026" />
-            <Card icon={<MapPin className="h-5 w-5" />} title="Sede" body="Costa del Sol Wyndham · Trujillo" />
-            <Card icon={<Award className="h-5 w-5" />} title="País invitado" body="Chile" />
-            <Card icon={<Users className="h-5 w-5" />} title="Edición 2025" body="+200 empresas · +380 reuniones B2B" />
+            <Card icon={<Calendar className="h-5 w-5" />} title="Fechas" body={cfg.dates} />
+            <Card icon={<MapPin className="h-5 w-5" />} title="Sede" body={cfg.venue} />
+            <Card icon={<Award className="h-5 w-5" />} title="País invitado" body={cfg.guest_country} />
+            <Card icon={<Users className="h-5 w-5" />} title={cfg.previous_edition_label} body={cfg.previous_edition_stats} />
           </div>
         </div>
         <div className="relative">
@@ -66,14 +90,14 @@ export function Ubicacion() {
           />
           <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-1 shadow-[var(--shadow-brand)]">
             <iframe
-              title="Trujillo, Perú"
-              src="https://www.google.com/maps?q=Costa+del+Sol+Wyndham+Trujillo&output=embed"
+              title={cfg.location_headline}
+              src={mapEmbedUrl(cfg.map_query)}
               className="h-[420px] w-full rounded-2xl"
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
             />
             <a
-              href="https://www.google.com/maps/dir/?api=1&destination=Costa+del+Sol+Wyndham+Trujillo&destination_place_id=&travelmode=driving"
+              href={mapDirectionsUrl(cfg.map_query)}
               target="_blank"
               rel="noopener noreferrer"
               className="absolute bottom-4 right-4 inline-flex items-center gap-2 rounded-full bg-secondary px-5 py-3 text-sm font-semibold text-secondary-foreground shadow-lg transition hover:scale-[1.03]"
@@ -497,24 +521,54 @@ export function Conferencia() {
 }
 
 export function Patrocinios() {
+  const [sponsors, setSponsors] = useState<PublicSponsor[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    listPublicSponsors()
+      .then((data) => active && setSponsors(data))
+      .catch(() => active && setSponsors([]))
+      .finally(() => active && setLoading(false));
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <Section id="patrocinios" className="border-t border-border/60">
       <SectionTitle eyebrow="Aliados" title="Patrocinios" description="Marcas, gremios e instituciones que hacen posible Muchik." />
-      <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-        {sponsorLogos.map((src) => (
-          <div
-            key={src}
-            className="flex h-28 items-center justify-center rounded-xl border border-border bg-white p-3 transition hover:border-secondary/40 hover:shadow-md"
-          >
-            <img
-              src={src}
-              alt="Logo patrocinador"
-              loading="lazy"
-              className="max-h-full max-w-full object-contain"
-            />
-          </div>
-        ))}
-      </div>
+      {loading ? (
+        <div className="mt-12 text-center text-sm text-muted-foreground">Cargando patrocinadores…</div>
+      ) : sponsors.length === 0 ? (
+        <div className="mt-12 text-center text-sm text-muted-foreground">Pronto anunciaremos a nuestros aliados.</div>
+      ) : (
+        <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+          {sponsors.map((s) => {
+            const card = (
+              <div className="flex h-28 items-center justify-center rounded-xl border border-border bg-white p-3 transition hover:border-secondary/40 hover:shadow-md">
+                {mediaUrl(s.logo) && (
+                  <img
+                    src={mediaUrl(s.logo) as string}
+                    alt={s.name}
+                    loading="lazy"
+                    className="max-h-full max-w-full object-contain"
+                  />
+                )}
+              </div>
+            );
+            return s.website ? (
+              <a key={s.id} href={s.website} target="_blank" rel="noopener noreferrer" title={s.name}>
+                {card}
+              </a>
+            ) : (
+              <div key={s.id} title={s.name}>
+                {card}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </Section>
   );
 }
