@@ -11,12 +11,18 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as RegistroAsistenteRouteImport } from './routes/registro-asistente'
 import { Route as RegistroRouteImport } from './routes/registro'
+import { Route as MisEntradasRouteImport } from './routes/mis-entradas'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ExpositorRouteImport } from './routes/expositor'
 import { Route as BackofficeRouteImport } from './routes/backoffice'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BackofficeIndexRouteImport } from './routes/backoffice.index'
+import { Route as BackofficeStandsRouteImport } from './routes/backoffice.stands'
+import { Route as BackofficeReservasRouteImport } from './routes/backoffice.reservas'
+import { Route as BackofficePerfilRouteImport } from './routes/backoffice.perfil'
+import { Route as BackofficeOrdenesRouteImport } from './routes/backoffice.ordenes'
 import { Route as BackofficeExpositoresRouteImport } from './routes/backoffice.expositores'
+import { Route as BackofficeEntradasRouteImport } from './routes/backoffice.entradas'
 
 const RegistroAsistenteRoute = RegistroAsistenteRouteImport.update({
   id: '/registro-asistente',
@@ -26,6 +32,11 @@ const RegistroAsistenteRoute = RegistroAsistenteRouteImport.update({
 const RegistroRoute = RegistroRouteImport.update({
   id: '/registro',
   path: '/registro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MisEntradasRoute = MisEntradasRouteImport.update({
+  id: '/mis-entradas',
+  path: '/mis-entradas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -53,9 +64,34 @@ const BackofficeIndexRoute = BackofficeIndexRouteImport.update({
   path: '/',
   getParentRoute: () => BackofficeRoute,
 } as any)
+const BackofficeStandsRoute = BackofficeStandsRouteImport.update({
+  id: '/stands',
+  path: '/stands',
+  getParentRoute: () => BackofficeRoute,
+} as any)
+const BackofficeReservasRoute = BackofficeReservasRouteImport.update({
+  id: '/reservas',
+  path: '/reservas',
+  getParentRoute: () => BackofficeRoute,
+} as any)
+const BackofficePerfilRoute = BackofficePerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
+  getParentRoute: () => BackofficeRoute,
+} as any)
+const BackofficeOrdenesRoute = BackofficeOrdenesRouteImport.update({
+  id: '/ordenes',
+  path: '/ordenes',
+  getParentRoute: () => BackofficeRoute,
+} as any)
 const BackofficeExpositoresRoute = BackofficeExpositoresRouteImport.update({
   id: '/expositores',
   path: '/expositores',
+  getParentRoute: () => BackofficeRoute,
+} as any)
+const BackofficeEntradasRoute = BackofficeEntradasRouteImport.update({
+  id: '/entradas',
+  path: '/entradas',
   getParentRoute: () => BackofficeRoute,
 } as any)
 
@@ -64,18 +100,30 @@ export interface FileRoutesByFullPath {
   '/backoffice': typeof BackofficeRouteWithChildren
   '/expositor': typeof ExpositorRoute
   '/login': typeof LoginRoute
+  '/mis-entradas': typeof MisEntradasRoute
   '/registro': typeof RegistroRoute
   '/registro-asistente': typeof RegistroAsistenteRoute
+  '/backoffice/entradas': typeof BackofficeEntradasRoute
   '/backoffice/expositores': typeof BackofficeExpositoresRoute
+  '/backoffice/ordenes': typeof BackofficeOrdenesRoute
+  '/backoffice/perfil': typeof BackofficePerfilRoute
+  '/backoffice/reservas': typeof BackofficeReservasRoute
+  '/backoffice/stands': typeof BackofficeStandsRoute
   '/backoffice/': typeof BackofficeIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/expositor': typeof ExpositorRoute
   '/login': typeof LoginRoute
+  '/mis-entradas': typeof MisEntradasRoute
   '/registro': typeof RegistroRoute
   '/registro-asistente': typeof RegistroAsistenteRoute
+  '/backoffice/entradas': typeof BackofficeEntradasRoute
   '/backoffice/expositores': typeof BackofficeExpositoresRoute
+  '/backoffice/ordenes': typeof BackofficeOrdenesRoute
+  '/backoffice/perfil': typeof BackofficePerfilRoute
+  '/backoffice/reservas': typeof BackofficeReservasRoute
+  '/backoffice/stands': typeof BackofficeStandsRoute
   '/backoffice': typeof BackofficeIndexRoute
 }
 export interface FileRoutesById {
@@ -84,9 +132,15 @@ export interface FileRoutesById {
   '/backoffice': typeof BackofficeRouteWithChildren
   '/expositor': typeof ExpositorRoute
   '/login': typeof LoginRoute
+  '/mis-entradas': typeof MisEntradasRoute
   '/registro': typeof RegistroRoute
   '/registro-asistente': typeof RegistroAsistenteRoute
+  '/backoffice/entradas': typeof BackofficeEntradasRoute
   '/backoffice/expositores': typeof BackofficeExpositoresRoute
+  '/backoffice/ordenes': typeof BackofficeOrdenesRoute
+  '/backoffice/perfil': typeof BackofficePerfilRoute
+  '/backoffice/reservas': typeof BackofficeReservasRoute
+  '/backoffice/stands': typeof BackofficeStandsRoute
   '/backoffice/': typeof BackofficeIndexRoute
 }
 export interface FileRouteTypes {
@@ -96,18 +150,30 @@ export interface FileRouteTypes {
     | '/backoffice'
     | '/expositor'
     | '/login'
+    | '/mis-entradas'
     | '/registro'
     | '/registro-asistente'
+    | '/backoffice/entradas'
     | '/backoffice/expositores'
+    | '/backoffice/ordenes'
+    | '/backoffice/perfil'
+    | '/backoffice/reservas'
+    | '/backoffice/stands'
     | '/backoffice/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/expositor'
     | '/login'
+    | '/mis-entradas'
     | '/registro'
     | '/registro-asistente'
+    | '/backoffice/entradas'
     | '/backoffice/expositores'
+    | '/backoffice/ordenes'
+    | '/backoffice/perfil'
+    | '/backoffice/reservas'
+    | '/backoffice/stands'
     | '/backoffice'
   id:
     | '__root__'
@@ -115,9 +181,15 @@ export interface FileRouteTypes {
     | '/backoffice'
     | '/expositor'
     | '/login'
+    | '/mis-entradas'
     | '/registro'
     | '/registro-asistente'
+    | '/backoffice/entradas'
     | '/backoffice/expositores'
+    | '/backoffice/ordenes'
+    | '/backoffice/perfil'
+    | '/backoffice/reservas'
+    | '/backoffice/stands'
     | '/backoffice/'
   fileRoutesById: FileRoutesById
 }
@@ -126,6 +198,7 @@ export interface RootRouteChildren {
   BackofficeRoute: typeof BackofficeRouteWithChildren
   ExpositorRoute: typeof ExpositorRoute
   LoginRoute: typeof LoginRoute
+  MisEntradasRoute: typeof MisEntradasRoute
   RegistroRoute: typeof RegistroRoute
   RegistroAsistenteRoute: typeof RegistroAsistenteRoute
 }
@@ -144,6 +217,13 @@ declare module '@tanstack/react-router' {
       path: '/registro'
       fullPath: '/registro'
       preLoaderRoute: typeof RegistroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mis-entradas': {
+      id: '/mis-entradas'
+      path: '/mis-entradas'
+      fullPath: '/mis-entradas'
+      preLoaderRoute: typeof MisEntradasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -181,6 +261,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BackofficeIndexRouteImport
       parentRoute: typeof BackofficeRoute
     }
+    '/backoffice/stands': {
+      id: '/backoffice/stands'
+      path: '/stands'
+      fullPath: '/backoffice/stands'
+      preLoaderRoute: typeof BackofficeStandsRouteImport
+      parentRoute: typeof BackofficeRoute
+    }
+    '/backoffice/reservas': {
+      id: '/backoffice/reservas'
+      path: '/reservas'
+      fullPath: '/backoffice/reservas'
+      preLoaderRoute: typeof BackofficeReservasRouteImport
+      parentRoute: typeof BackofficeRoute
+    }
+    '/backoffice/perfil': {
+      id: '/backoffice/perfil'
+      path: '/perfil'
+      fullPath: '/backoffice/perfil'
+      preLoaderRoute: typeof BackofficePerfilRouteImport
+      parentRoute: typeof BackofficeRoute
+    }
+    '/backoffice/ordenes': {
+      id: '/backoffice/ordenes'
+      path: '/ordenes'
+      fullPath: '/backoffice/ordenes'
+      preLoaderRoute: typeof BackofficeOrdenesRouteImport
+      parentRoute: typeof BackofficeRoute
+    }
     '/backoffice/expositores': {
       id: '/backoffice/expositores'
       path: '/expositores'
@@ -188,16 +296,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BackofficeExpositoresRouteImport
       parentRoute: typeof BackofficeRoute
     }
+    '/backoffice/entradas': {
+      id: '/backoffice/entradas'
+      path: '/entradas'
+      fullPath: '/backoffice/entradas'
+      preLoaderRoute: typeof BackofficeEntradasRouteImport
+      parentRoute: typeof BackofficeRoute
+    }
   }
 }
 
 interface BackofficeRouteChildren {
+  BackofficeEntradasRoute: typeof BackofficeEntradasRoute
   BackofficeExpositoresRoute: typeof BackofficeExpositoresRoute
+  BackofficeOrdenesRoute: typeof BackofficeOrdenesRoute
+  BackofficePerfilRoute: typeof BackofficePerfilRoute
+  BackofficeReservasRoute: typeof BackofficeReservasRoute
+  BackofficeStandsRoute: typeof BackofficeStandsRoute
   BackofficeIndexRoute: typeof BackofficeIndexRoute
 }
 
 const BackofficeRouteChildren: BackofficeRouteChildren = {
+  BackofficeEntradasRoute: BackofficeEntradasRoute,
   BackofficeExpositoresRoute: BackofficeExpositoresRoute,
+  BackofficeOrdenesRoute: BackofficeOrdenesRoute,
+  BackofficePerfilRoute: BackofficePerfilRoute,
+  BackofficeReservasRoute: BackofficeReservasRoute,
+  BackofficeStandsRoute: BackofficeStandsRoute,
   BackofficeIndexRoute: BackofficeIndexRoute,
 }
 
@@ -210,6 +335,7 @@ const rootRouteChildren: RootRouteChildren = {
   BackofficeRoute: BackofficeRouteWithChildren,
   ExpositorRoute: ExpositorRoute,
   LoginRoute: LoginRoute,
+  MisEntradasRoute: MisEntradasRoute,
   RegistroRoute: RegistroRoute,
   RegistroAsistenteRoute: RegistroAsistenteRoute,
 }
