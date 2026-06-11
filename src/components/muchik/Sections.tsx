@@ -1,10 +1,37 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Calendar, MapPin, Ticket, Store, Users, Mic, Radio, Newspaper, Award, Mail, Phone, ArrowRight, Loader2 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import {
+  Calendar,
+  MapPin,
+  Ticket,
+  Store,
+  Users,
+  Mic,
+  Radio,
+  Newspaper,
+  Award,
+  Mail,
+  Phone,
+  ArrowRight,
+  Loader2,
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { SectionTitle, ArrowBand } from "./SectionTitle";
 import { RegistroDialog } from "./RegistroDialog";
-import { getAccessToken, clearTokens, ApiError, readableApiError, mediaUrl } from "@/integrations/api/client";
+import {
+  getAccessToken,
+  clearTokens,
+  ApiError,
+  readableApiError,
+  mediaUrl,
+} from "@/integrations/api/client";
 import {
   listPublicTicketTypes,
   formatPrice,
@@ -28,6 +55,12 @@ import {
   mapDirectionsUrl,
   type EventConfig,
 } from "@/integrations/api/event-config";
+import {
+  getPublicB2BConfig,
+  listPublicB2BAgenda,
+  type B2BConfig,
+  type PublicB2BAgendaItem,
+} from "@/integrations/api/b2b";
 
 const Section = ({
   id,
@@ -79,8 +112,16 @@ export function Ubicacion() {
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
             <Card icon={<Calendar className="h-5 w-5" />} title="Fechas" body={cfg.dates} />
             <Card icon={<MapPin className="h-5 w-5" />} title="Sede" body={cfg.venue} />
-            <Card icon={<Award className="h-5 w-5" />} title="País invitado" body={cfg.guest_country} />
-            <Card icon={<Users className="h-5 w-5" />} title={cfg.previous_edition_label} body={cfg.previous_edition_stats} />
+            <Card
+              icon={<Award className="h-5 w-5" />}
+              title="País invitado"
+              body={cfg.guest_country}
+            />
+            <Card
+              icon={<Users className="h-5 w-5" />}
+              title={cfg.previous_edition_label}
+              body={cfg.previous_edition_stats}
+            />
           </div>
         </div>
         <div className="relative">
@@ -169,7 +210,11 @@ export function Entradas() {
 
   return (
     <Section id="entradas" className="border-t border-border/60">
-      <SectionTitle eyebrow="Público general" title="Entradas" description="Vive Muchik 2026. Elige tu experiencia y asegura tu lugar." />
+      <SectionTitle
+        eyebrow="Público general"
+        title="Entradas"
+        description="Vive Muchik 2026. Elige tu experiencia y asegura tu lugar."
+      />
 
       {buyError && (
         <div className="mt-6 rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-center text-sm text-destructive">
@@ -233,8 +278,8 @@ export function Entradas() {
           <DialogHeader>
             <DialogTitle>Inicia sesión para comprar</DialogTitle>
             <DialogDescription>
-              Para comprar tu entrada primero inicia sesión. Si aún no tienes
-              cuenta, regístrate; es rápido.
+              Para comprar tu entrada primero inicia sesión. Si aún no tienes cuenta, regístrate; es
+              rápido.
             </DialogDescription>
           </DialogHeader>
           <div className="mt-2 flex flex-col gap-2 sm:flex-row">
@@ -296,7 +341,10 @@ export function Stand() {
       ) : (
         <div className="grid gap-6 md:grid-cols-2">
           {stands.map((s) => (
-            <div key={s.id} className="relative overflow-hidden rounded-2xl border border-border bg-card p-7">
+            <div
+              key={s.id}
+              className="relative overflow-hidden rounded-2xl border border-border bg-card p-7"
+            >
               <Store className="h-8 w-8 text-secondary" />
               <h3 className="mt-3 text-3xl font-bold italic text-primary">Stand {s.name}</h3>
               {s.dimensions && <p className="mt-1 text-muted-foreground">{s.dimensions}</p>}
@@ -327,8 +375,8 @@ export function Stand() {
           <DialogHeader>
             <DialogTitle>Reserva tu stand</DialogTitle>
             <DialogDescription>
-              Para reservar un stand inicia sesión con tu cuenta de expositor. Si
-              aún no la tienes, regístrate como expositor.
+              Para reservar un stand inicia sesión con tu cuenta de expositor. Si aún no la tienes,
+              regístrate como expositor.
             </DialogDescription>
           </DialogHeader>
           <div className="mt-2 flex flex-col gap-2 sm:flex-row">
@@ -352,42 +400,95 @@ export function Stand() {
   );
 }
 
+// Contenido por defecto: se muestra mientras carga y como respaldo si el admin
+// aún no configuró la sección (la landing nunca queda vacía).
+const fallbackB2BConfig: B2BConfig = {
+  eyebrow: "B2B",
+  title: "Rueda de Negocios",
+  description:
+    "Mesas exclusivas para reuniones estratégicas y alianzas comerciales con compradores nacionales e internacionales.",
+  card_title: "Inscripción B2B",
+  price_label: "Precio regular",
+  price: "S/ 1,500",
+  price_note: "incluido IGV",
+  includes_text:
+    "Incluye: table tent, dos sillas, WiFi, mantelería, conexión laptops, personal de logística.",
+  cta_label: "Registrarme a la rueda",
+};
+
+const fallbackB2BAgenda: PublicB2BAgendaItem[] = [
+  {
+    id: -1,
+    day_label: "Día 1 · 21 Oct",
+    title: "Inauguración + Rueda B2B mañana",
+    time_range: "09:00 — 13:00",
+  },
+  {
+    id: -2,
+    day_label: "Día 2 · 22 Oct",
+    title: "Rueda B2B full-day + Foro Internacional",
+    time_range: "09:00 — 18:00",
+  },
+  {
+    id: -3,
+    day_label: "Día 3 · 23 Oct",
+    title: "Cierre B2B + Networking",
+    time_range: "09:00 — 14:00",
+  },
+];
+
 export function RuedaNegocios() {
-  const agenda = [
-    { day: "Día 1 · 21 Oct", title: "Inauguración + Rueda B2B mañana", time: "09:00 — 13:00" },
-    { day: "Día 2 · 22 Oct", title: "Rueda B2B full-day + Foro Internacional", time: "09:00 — 18:00" },
-    { day: "Día 3 · 23 Oct", title: "Cierre B2B + Networking", time: "09:00 — 14:00" },
-  ];
+  const [cfg, setCfg] = useState<B2BConfig>(fallbackB2BConfig);
+  const [agenda, setAgenda] = useState<PublicB2BAgendaItem[]>(fallbackB2BAgenda);
+
+  useEffect(() => {
+    let active = true;
+    getPublicB2BConfig()
+      .then((data) => active && setCfg(data))
+      .catch(() => {
+        /* error de red → conserva el respaldo */
+      });
+    listPublicB2BAgenda()
+      .then((items) => {
+        if (active && items.length > 0) setAgenda(items);
+      })
+      .catch(() => {
+        /* error de red → conserva el respaldo */
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <Section id="rueda" className="border-t border-border/60">
-      <SectionTitle
-        eyebrow="B2B"
-        title="Rueda de Negocios"
-        description="Mesas exclusivas para reuniones estratégicas y alianzas comerciales con compradores nacionales e internacionales."
-      />
+      <SectionTitle eyebrow={cfg.eyebrow} title={cfg.title} description={cfg.description} />
       <div className="mt-12 grid items-start gap-8 lg:grid-cols-[1fr_1.2fr]">
-        <div className="rounded-2xl p-7 text-primary-foreground shadow-[var(--shadow-brand)]" style={{ background: "var(--gradient-brand)" }}>
+        <div
+          className="rounded-2xl p-7 text-primary-foreground shadow-[var(--shadow-brand)]"
+          style={{ background: "var(--gradient-brand)" }}
+        >
           <Users className="h-8 w-8" />
-          <h3 className="mt-4 text-3xl font-bold italic">Inscripción B2B</h3>
-          <p className="mt-2 text-white/90">Precio regular</p>
-          <p className="mt-1 text-5xl font-bold">S/ 1,500</p>
-          <p className="text-sm text-white/80">incluido IGV</p>
-          <p className="mt-5 text-sm text-white/90">
-            Incluye: table tent, dos sillas, WiFi, mantelería, conexión laptops, personal de logística.
-          </p>
+          <h3 className="mt-4 text-3xl font-bold italic">{cfg.card_title}</h3>
+          {cfg.price_label && <p className="mt-2 text-white/90">{cfg.price_label}</p>}
+          {cfg.price && <p className="mt-1 text-5xl font-bold">{cfg.price}</p>}
+          {cfg.price_note && <p className="text-sm text-white/80">{cfg.price_note}</p>}
+          {cfg.includes_text && <p className="mt-5 text-sm text-white/90">{cfg.includes_text}</p>}
           <RegistroDialog className="mt-6 inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-primary">
-            Registrarme a la rueda <ArrowRight className="h-4 w-4" />
+            {cfg.cta_label} <ArrowRight className="h-4 w-4" />
           </RegistroDialog>
         </div>
         <div className="rounded-2xl border border-border bg-card p-7">
           <h4 className="text-sm font-semibold uppercase tracking-wider text-secondary">Agenda</h4>
           <ul className="mt-4 divide-y divide-border">
             {agenda.map((a) => (
-              <li key={a.day} className="flex items-start gap-4 py-4">
-                <div className="w-32 shrink-0 text-xs font-bold uppercase tracking-wider text-primary">{a.day}</div>
+              <li key={a.id} className="flex items-start gap-4 py-4">
+                <div className="w-32 shrink-0 text-xs font-bold uppercase tracking-wider text-primary">
+                  {a.day_label}
+                </div>
                 <div className="flex-1">
                   <p className="font-semibold text-foreground">{a.title}</p>
-                  <p className="text-sm text-muted-foreground">{a.time}</p>
+                  <p className="text-sm text-muted-foreground">{a.time_range}</p>
                 </div>
               </li>
             ))}
@@ -402,7 +503,9 @@ function SpeakerAvatar({ speaker, size }: { speaker: PublicSpeaker; size: "lg" |
   const cls = size === "lg" ? "h-20 w-20" : "h-16 w-16";
   const photo = mediaUrl(speaker.photo);
   if (photo) {
-    return <img src={photo} alt={speaker.name} className={`${cls} shrink-0 rounded-full object-cover`} />;
+    return (
+      <img src={photo} alt={speaker.name} className={`${cls} shrink-0 rounded-full object-cover`} />
+    );
   }
   return (
     <div
@@ -437,7 +540,8 @@ export function Conferencia() {
           <Mic className="h-8 w-8 text-secondary" />
           <h3 className="mt-4 text-3xl font-bold italic text-primary">Disertantes</h3>
           <p className="mt-2 text-muted-foreground">
-            Expertos, autoridades y profesionales analizan nuevas estrategias para diversificar la oferta turística del Perú.
+            Expertos, autoridades y profesionales analizan nuevas estrategias para diversificar la
+            oferta turística del Perú.
           </p>
           <RegistroDialog
             className="mt-5 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-primary-foreground"
@@ -487,19 +591,25 @@ export function Conferencia() {
                   <div className="mt-2 space-y-4">
                     {s.position && (
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-wider text-secondary">Cargo</p>
+                        <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
+                          Cargo
+                        </p>
                         <p className="mt-1 text-sm text-foreground">{s.position}</p>
                       </div>
                     )}
                     {s.bio && (
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-wider text-secondary">Biografía</p>
+                        <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
+                          Biografía
+                        </p>
                         <p className="mt-1 text-sm text-muted-foreground">{s.bio}</p>
                       </div>
                     )}
                     {s.topic && (
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-wider text-secondary">Tema en el Foro</p>
+                        <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
+                          Tema en el Foro
+                        </p>
                         <p className="mt-1 text-sm text-muted-foreground">{s.topic}</p>
                       </div>
                     )}
@@ -537,11 +647,19 @@ export function Patrocinios() {
 
   return (
     <Section id="patrocinios" className="border-t border-border/60">
-      <SectionTitle eyebrow="Aliados" title="Patrocinios" description="Marcas, gremios e instituciones que hacen posible Muchik." />
+      <SectionTitle
+        eyebrow="Aliados"
+        title="Patrocinios"
+        description="Marcas, gremios e instituciones que hacen posible Muchik."
+      />
       {loading ? (
-        <div className="mt-12 text-center text-sm text-muted-foreground">Cargando patrocinadores…</div>
+        <div className="mt-12 text-center text-sm text-muted-foreground">
+          Cargando patrocinadores…
+        </div>
       ) : sponsors.length === 0 ? (
-        <div className="mt-12 text-center text-sm text-muted-foreground">Pronto anunciaremos a nuestros aliados.</div>
+        <div className="mt-12 text-center text-sm text-muted-foreground">
+          Pronto anunciaremos a nuestros aliados.
+        </div>
       ) : (
         <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
           {sponsors.map((s) => {
@@ -558,7 +676,13 @@ export function Patrocinios() {
               </div>
             );
             return s.website ? (
-              <a key={s.id} href={s.website} target="_blank" rel="noopener noreferrer" title={s.name}>
+              <a
+                key={s.id}
+                href={s.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={s.name}
+              >
                 {card}
               </a>
             ) : (
@@ -579,22 +703,29 @@ export function Live() {
       <div className="overflow-hidden rounded-3xl border border-border bg-card">
         <div className="grid gap-0 lg:grid-cols-2">
           <div className="relative flex aspect-video items-center justify-center bg-black lg:aspect-auto">
-            <div className="absolute inset-0 opacity-60" style={{ background: "var(--gradient-brand)" }} />
+            <div
+              className="absolute inset-0 opacity-60"
+              style={{ background: "var(--gradient-brand)" }}
+            />
             <div className="relative z-10 text-center text-white">
               <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-white/15 backdrop-blur">
                 <Radio className="h-9 w-9" />
               </div>
-              <p className="mt-4 text-sm font-semibold uppercase tracking-[0.3em]">Próximamente en vivo</p>
+              <p className="mt-4 text-sm font-semibold uppercase tracking-[0.3em]">
+                Próximamente en vivo
+              </p>
             </div>
           </div>
           <div className="p-8 lg:p-12">
             <span className="inline-flex items-center gap-2 rounded-full bg-destructive/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-destructive">
               <span className="h-2 w-2 animate-pulse rounded-full bg-destructive" /> LIVE
             </span>
-            <h3 className="mt-4 text-3xl font-bold italic text-primary sm:text-4xl">Transmisión en vivo</h3>
+            <h3 className="mt-4 text-3xl font-bold italic text-primary sm:text-4xl">
+              Transmisión en vivo
+            </h3>
             <p className="mt-3 text-muted-foreground">
-              Sigue las conferencias, paneles y la inauguración cultural en directo
-              desde cualquier lugar. Activamos el streaming durante los tres días del evento.
+              Sigue las conferencias, paneles y la inauguración cultural en directo desde cualquier
+              lugar. Activamos el streaming durante los tres días del evento.
             </p>
             <a
               href="https://www.instagram.com/feria_muchik/reels/?__d=1%2B"
@@ -617,10 +748,12 @@ export function Prensa() {
       <div className="grid items-center gap-10 lg:grid-cols-2">
         <div>
           <Newspaper className="h-8 w-8 text-secondary" />
-          <h2 className="mt-4 text-4xl font-bold italic tracking-tight text-primary sm:text-5xl">Sala de prensa</h2>
+          <h2 className="mt-4 text-4xl font-bold italic tracking-tight text-primary sm:text-5xl">
+            Sala de prensa
+          </h2>
           <p className="mt-3 text-lg text-muted-foreground">
-            Acreditación de medios, kit de prensa, fotografías oficiales y comunicados.
-            Solicita tu credencial para cubrir Muchik 2026.
+            Acreditación de medios, kit de prensa, fotografías oficiales y comunicados. Solicita tu
+            credencial para cubrir Muchik 2026.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <RegistroDialog
@@ -629,23 +762,25 @@ export function Prensa() {
             >
               Solicitar acreditación
             </RegistroDialog>
-            <a href="#" className="rounded-full border border-primary/20 px-6 py-3 text-sm font-semibold text-primary">
+            <a
+              href="#"
+              className="rounded-full border border-primary/20 px-6 py-3 text-sm font-semibold text-primary"
+            >
               Descargar kit de prensa
             </a>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
-          {[
-            "+380 reuniones B2B",
-            "+200 empresas",
-            "92% satisfacción",
-            "88% expositores",
-          ].map((stat, i) => (
-            <div key={i} className="rounded-2xl border border-border bg-card p-6">
-              <p className="text-2xl font-bold italic text-secondary">{stat.split(" ")[0]}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{stat.split(" ").slice(1).join(" ")}</p>
-            </div>
-          ))}
+          {["+380 reuniones B2B", "+200 empresas", "92% satisfacción", "88% expositores"].map(
+            (stat, i) => (
+              <div key={i} className="rounded-2xl border border-border bg-card p-6">
+                <p className="text-2xl font-bold italic text-secondary">{stat.split(" ")[0]}</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {stat.split(" ").slice(1).join(" ")}
+                </p>
+              </div>
+            ),
+          )}
         </div>
       </div>
     </Section>
@@ -658,20 +793,34 @@ export function Footer() {
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 lg:grid-cols-4 lg:px-8">
         <div>
           <p className="text-3xl font-bold italic">MUCHIK</p>
-          <p className="mt-2 text-sm text-white/80">Feria Internacional de Turismo · Trujillo, Perú · 2026</p>
+          <p className="mt-2 text-sm text-white/80">
+            Feria Internacional de Turismo · Trujillo, Perú · 2026
+          </p>
         </div>
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-white/60">WhatsApp</p>
-          <p className="mt-2 flex items-center gap-2 text-sm"><Phone className="h-4 w-4" /><span>+51 931 388 602</span></p>
-          <p className="mt-1 flex items-center gap-2 text-sm"><Phone className="h-4 w-4" /><span>+51 993 289 550</span></p>
+          <p className="mt-2 flex items-center gap-2 text-sm">
+            <Phone className="h-4 w-4" />
+            <span>+51 931 388 602</span>
+          </p>
+          <p className="mt-1 flex items-center gap-2 text-sm">
+            <Phone className="h-4 w-4" />
+            <span>+51 993 289 550</span>
+          </p>
         </div>
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-white/60">E-mail</p>
-          <p className="mt-2 flex items-center gap-2 text-sm break-all"><Mail className="h-4 w-4" /><span>camaradeturismolalibertad@gmail.com</span></p>
+          <p className="mt-2 flex items-center gap-2 text-sm break-all">
+            <Mail className="h-4 w-4" />
+            <span>camaradeturismolalibertad@gmail.com</span>
+          </p>
         </div>
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-white/60">Ubicación</p>
-          <p className="mt-2 flex items-start gap-2 text-sm"><MapPin className="h-4 w-4 mt-0.5" /><span>Jr. Independencia 467 · Plaza de Armas (2do piso), Trujillo</span></p>
+          <p className="mt-2 flex items-start gap-2 text-sm">
+            <MapPin className="h-4 w-4 mt-0.5" />
+            <span>Jr. Independencia 467 · Plaza de Armas (2do piso), Trujillo</span>
+          </p>
         </div>
       </div>
       <div className="border-t border-white/10 py-5 text-center text-xs text-white/60">
