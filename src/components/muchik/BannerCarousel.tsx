@@ -2,11 +2,22 @@ import { useEffect, useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { RegistroDialog } from "./RegistroDialog";
+import { mediaUrl } from "@/integrations/api/client";
+import { listPublicBanners } from "@/integrations/api/banners";
 import banner1 from "@/assets/banner-feria.jpg";
 import banner2 from "@/assets/banner-trujillo.jpg";
 import banner3 from "@/assets/banner-peru.jpg";
 
-const slides = [
+interface Slide {
+  img: string;
+  eyebrow: string;
+  title: string;
+  sub: string;
+}
+
+// Diapositivas por defecto: se muestran mientras carga y como respaldo si el
+// admin aún no ha creado banners (la landing nunca queda vacía).
+const fallbackSlides: Slide[] = [
   {
     img: banner1,
     eyebrow: "Feria Internacional de Turismo",
@@ -30,9 +41,35 @@ const slides = [
 export function BannerCarousel() {
   const [emblaRef, embla] = useEmblaCarousel({ loop: true });
   const [index, setIndex] = useState(0);
+  const [slides, setSlides] = useState<Slide[]>(fallbackSlides);
 
+  // Carga los banners dinámicos del backend; si no hay, deja los de respaldo.
+  useEffect(() => {
+    let active = true;
+    listPublicBanners()
+      .then((banners) => {
+        if (!active || banners.length === 0) return;
+        setSlides(
+          banners.map((b) => ({
+            img: mediaUrl(b.image) || "",
+            eyebrow: b.eyebrow,
+            title: b.title,
+            sub: b.subtitle,
+          })),
+        );
+      })
+      .catch(() => {
+        /* error de red → conserva los de respaldo */
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Reinicia Embla y el autoplay cuando cambian las diapositivas.
   useEffect(() => {
     if (!embla) return;
+    embla.reInit();
     const onSelect = () => setIndex(embla.selectedScrollSnap());
     embla.on("select", onSelect);
     onSelect();
@@ -41,7 +78,7 @@ export function BannerCarousel() {
       clearInterval(id);
       embla.off("select", onSelect);
     };
-  }, [embla]);
+  }, [embla, slides]);
 
   return (
     <section id="banner" className="relative">
