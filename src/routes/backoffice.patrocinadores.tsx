@@ -33,6 +33,7 @@ type FormState = {
   name: string;
   website: string;
   tier: string;
+  logo_url: string;
   sort_order: string;
   is_active: boolean;
 };
@@ -41,6 +42,7 @@ const emptyForm: FormState = {
   name: "",
   website: "",
   tier: "",
+  logo_url: "",
   sort_order: "0",
   is_active: true,
 };
@@ -97,6 +99,7 @@ function PatrocinadoresAdminPage() {
       name: s.name,
       website: s.website,
       tier: s.tier,
+      logo_url: s.logo_url || "",
       sort_order: String(s.sort_order),
       is_active: s.is_active,
     });
@@ -121,14 +124,18 @@ function PatrocinadoresAdminPage() {
       setFormError("El nombre es obligatorio.");
       return;
     }
-    if (!editing && !logoFile) {
-      setFormError("El logo es obligatorio.");
+    // Debe haber al menos una fuente de logo: archivo nuevo, URL externa, o
+    // (al editar) un archivo ya existente.
+    const hasLogo = Boolean(logoFile || form.logo_url.trim() || currentLogo);
+    if (!hasLogo) {
+      setFormError("Sube un logo o indica una URL de logo.");
       return;
     }
     const fd = new FormData();
     fd.append("name", form.name.trim());
     fd.append("website", form.website.trim());
     fd.append("tier", form.tier.trim());
+    fd.append("logo_url", form.logo_url.trim());
     fd.append("sort_order", String(Number(form.sort_order) || 0));
     fd.append("is_active", form.is_active ? "true" : "false");
     if (logoFile) fd.append("logo", logoFile);
@@ -159,7 +166,7 @@ function PatrocinadoresAdminPage() {
     }
   }
 
-  const shownLogo = logoPreview || mediaUrl(currentLogo);
+  const shownLogo = logoPreview || mediaUrl(currentLogo) || form.logo_url.trim() || null;
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -170,7 +177,9 @@ function PatrocinadoresAdminPage() {
           </span>
           <div>
             <h1 className="text-2xl font-bold text-primary md:text-3xl">Patrocinadores</h1>
-            <p className="text-sm text-foreground/70">Logos de marcas, gremios e instituciones aliadas.</p>
+            <p className="text-sm text-foreground/70">
+              Logos de marcas, gremios e instituciones aliadas.
+            </p>
           </div>
         </div>
         <button
@@ -200,10 +209,17 @@ function PatrocinadoresAdminPage() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {items.map((s) => (
-              <article key={s.id} className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
+              <article
+                key={s.id}
+                className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm"
+              >
                 <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-white">
-                  {mediaUrl(s.logo) ? (
-                    <img src={mediaUrl(s.logo) as string} alt={s.name} className="max-h-full max-w-full object-contain" />
+                  {mediaUrl(s.logo) || s.logo_url ? (
+                    <img
+                      src={(mediaUrl(s.logo) || s.logo_url) as string}
+                      alt={s.name}
+                      className="max-h-full max-w-full object-contain"
+                    />
                   ) : (
                     <Award className="h-6 w-6 text-muted-foreground" />
                   )}
@@ -218,7 +234,9 @@ function PatrocinadoresAdminPage() {
                     )}
                   </div>
                   {s.tier && <p className="text-xs text-secondary">{s.tier}</p>}
-                  {s.website && <p className="truncate text-xs text-muted-foreground">{s.website}</p>}
+                  {s.website && (
+                    <p className="truncate text-xs text-muted-foreground">{s.website}</p>
+                  )}
                 </div>
                 <div className="flex shrink-0 gap-1.5">
                   <button
@@ -284,24 +302,64 @@ function PatrocinadoresAdminPage() {
 
             <div>
               <Label className="text-sm font-medium">Nombre *</Label>
-              <Input className="mt-2" value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="CANATUR" />
+              <Input
+                className="mt-2"
+                value={form.name}
+                onChange={(e) => set("name", e.target.value)}
+                placeholder="CANATUR"
+              />
             </div>
             <div>
               <Label className="text-sm font-medium">Sitio web</Label>
-              <Input className="mt-2" type="url" value={form.website} onChange={(e) => set("website", e.target.value)} placeholder="https://…" />
+              <Input
+                className="mt-2"
+                type="url"
+                value={form.website}
+                onChange={(e) => set("website", e.target.value)}
+                placeholder="https://…"
+              />
+            </div>
+            <div>
+              <Label className="text-sm font-medium">URL de logo (CDN externo)</Label>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Alternativa al archivo: si la indicas, el logo se carga desde esa URL. Lo
+                recomendable en producción es subir el archivo.
+              </p>
+              <Input
+                className="mt-2"
+                type="url"
+                value={form.logo_url}
+                onChange={(e) => set("logo_url", e.target.value)}
+                placeholder="https://…/logo.png"
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label className="text-sm font-medium">Nivel</Label>
-                <Input className="mt-2" value={form.tier} onChange={(e) => set("tier", e.target.value)} placeholder="Oro / Plata…" />
+                <Input
+                  className="mt-2"
+                  value={form.tier}
+                  onChange={(e) => set("tier", e.target.value)}
+                  placeholder="Oro / Plata…"
+                />
               </div>
               <div>
                 <Label className="text-sm font-medium">Orden</Label>
-                <Input className="mt-2" type="number" min="0" value={form.sort_order} onChange={(e) => set("sort_order", e.target.value)} />
+                <Input
+                  className="mt-2"
+                  type="number"
+                  min="0"
+                  value={form.sort_order}
+                  onChange={(e) => set("sort_order", e.target.value)}
+                />
               </div>
             </div>
             <label className="flex items-center gap-2 text-sm text-foreground/80">
-              <input type="checkbox" checked={form.is_active} onChange={(e) => set("is_active", e.target.checked)} />
+              <input
+                type="checkbox"
+                checked={form.is_active}
+                onChange={(e) => set("is_active", e.target.checked)}
+              />
               Activo (visible en la landing)
             </label>
 

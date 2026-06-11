@@ -15,6 +15,8 @@ export interface PublicSponsor {
 
 /** Registro completo para la gestión del admin. */
 export interface Sponsor extends PublicSponsor {
+  /** URL/CDN externa opcional (alternativa al archivo subido). */
+  logo_url: string;
   is_active: boolean;
   sort_order: number;
   created_at: string;
@@ -36,7 +38,11 @@ export async function createSponsor(data: FormData): Promise<Sponsor> {
 }
 
 export async function updateSponsor(id: number, data: FormData): Promise<Sponsor> {
-  return apiRequest<Sponsor>(`/api/v1/sponsors/${id}/`, { method: "PATCH", auth: true, body: data });
+  return apiRequest<Sponsor>(`/api/v1/sponsors/${id}/`, {
+    method: "PATCH",
+    auth: true,
+    body: data,
+  });
 }
 
 export async function deleteSponsor(id: number): Promise<void> {
