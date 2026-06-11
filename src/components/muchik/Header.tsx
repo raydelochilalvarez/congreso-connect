@@ -5,6 +5,7 @@ import { MuchikLogo } from "./Logo";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { userInitials, type AuthUser } from "@/integrations/api/auth";
+import { ChatWidget } from "./chat/ChatWidget";
 
 function AvatarCircle({ user }: { user: AuthUser }) {
   return (
@@ -79,6 +80,7 @@ export function Header() {
           >
             Contacto
           </a>
+          {user && <ChatWidget currentUserId={user.id} />}
           {loading ? (
             <div className="h-9 w-9 animate-pulse rounded-full bg-muted" />
           ) : user ? (
@@ -125,13 +127,16 @@ export function Header() {
             </Popover>
           )}
         </div>
-        <button
-          aria-label="Menu"
-          onClick={() => setOpen((v) => !v)}
-          className="rounded-md p-2 text-primary md:hidden"
-        >
-          {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
+        <div className="flex items-center gap-1 md:hidden">
+          {user && <ChatWidget currentUserId={user.id} />}
+          <button
+            aria-label="Menu"
+            onClick={() => setOpen((v) => !v)}
+            className="rounded-md p-2 text-primary"
+          >
+            {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+        </div>
       </div>
       {open && (
         <div className="border-t border-border bg-background md:hidden">
@@ -152,7 +157,9 @@ export function Header() {
                   <div className="flex items-center gap-3">
                     <AvatarCircle user={user} />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-foreground">{user.full_name}</p>
+                      <p className="truncate text-sm font-semibold text-foreground">
+                        {user.full_name}
+                      </p>
                       <p className="truncate text-xs text-muted-foreground">{user.email}</p>
                     </div>
                   </div>
