@@ -76,6 +76,31 @@ const Section = ({
   </section>
 );
 
+export function SobreMuchik() {
+  return (
+    <Section id="sobre-muchik">
+      <div className="mx-auto max-w-3xl text-center">
+        <h2 className="text-4xl font-bold italic tracking-tight text-primary sm:text-5xl">
+          Feria Muchik
+        </h2>
+        <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
+          Muchik es la feria internacional de turismo más importante de la región noramazónica del
+          Perú.
+        </p>
+        <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
+          Esta es la XII edición de la feria y la realiza la Cámara de Turismo de La Libertad en
+          cooperación con Promperú, Proinversión y las cámaras noramazónicas del Perú.
+        </p>
+        <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
+          Muchik es el punto de encuentro donde más de 200 agencias, tour operadores, hoteles,
+          diversas compañías, inversionistas, productos y destinos cierran negocios y crean alianzas
+          estratégicas.
+        </p>
+      </div>
+    </Section>
+  );
+}
+
 export function Ubicacion() {
   const [cfg, setCfg] = useState<EventConfig | null>(null);
 
@@ -213,7 +238,7 @@ export function Entradas() {
       <SectionTitle
         eyebrow="Público general"
         title="Entradas"
-        description="Vive Muchik 2026. Elige tu experiencia y asegura tu lugar."
+        description="Vive Muchik 2026. Asegura tu lugar."
       />
 
       {buyError && (
@@ -229,47 +254,52 @@ export function Entradas() {
           Las entradas estarán disponibles muy pronto.
         </div>
       ) : (
-        <div className="mt-12 grid gap-6 md:grid-cols-3">
-          {tiers.map((t) => (
-            <div
-              key={t.id}
-              className={`relative rounded-2xl border p-7 transition ${
-                t.is_popular
-                  ? "border-secondary bg-card shadow-[var(--shadow-brand)]"
-                  : "border-border bg-card hover:border-secondary/40"
-              }`}
-            >
-              {t.is_popular && (
-                <span className="absolute -top-3 left-7 rounded-full bg-secondary px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-secondary-foreground">
-                  Más elegida
-                </span>
-              )}
-              <Ticket className="h-7 w-7 text-secondary" />
-              <h3 className="mt-4 text-2xl font-bold italic text-primary">{t.name}</h3>
-              <p className="mt-1 text-3xl font-bold text-foreground">
-                {formatPrice(t.price, t.currency)}
-              </p>
-              {t.description && (
-                <p className="mt-3 text-sm text-muted-foreground">{t.description}</p>
-              )}
-              <button
-                onClick={() => buy(t.id)}
-                disabled={buyingId === t.id}
-                className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:opacity-95 disabled:opacity-60"
-                style={{ background: "var(--gradient-brand)" }}
+        <div className="mt-12 flex flex-col items-center gap-6">
+          {tiers.map((t) => {
+            const isFree = Number(t.price) === 0;
+            return (
+              <div
+                key={t.id}
+                className="relative w-full max-w-xl rounded-2xl border border-secondary bg-card p-8 text-center shadow-[var(--shadow-brand)]"
               >
-                {buyingId === t.id ? (
-                  <>
-                    Procesando… <Loader2 className="h-4 w-4 animate-spin" />
-                  </>
-                ) : (
-                  <>
-                    Comprar entrada <ArrowRight className="h-4 w-4" />
-                  </>
+                {t.is_popular && (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-secondary px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-secondary-foreground">
+                    Más elegida
+                  </span>
                 )}
-              </button>
-            </div>
-          ))}
+                <Ticket className="mx-auto h-8 w-8 text-secondary" />
+                <h3 className="mt-4 text-3xl font-bold italic text-primary">{t.name}</h3>
+                {!isFree && (
+                  <p className="mt-2 text-3xl font-bold text-foreground">
+                    {formatPrice(t.price, t.currency)}
+                  </p>
+                )}
+                {t.description && (
+                  <p className="mt-3 text-base text-muted-foreground">{t.description}</p>
+                )}
+                <button
+                  onClick={() => buy(t.id)}
+                  disabled={buyingId === t.id}
+                  className="mt-7 inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-4 text-base font-semibold text-primary-foreground transition hover:opacity-95 disabled:opacity-60"
+                  style={{ background: "var(--gradient-brand)" }}
+                >
+                  {buyingId === t.id ? (
+                    <>
+                      Procesando… <Loader2 className="h-5 w-5 animate-spin" />
+                    </>
+                  ) : isFree ? (
+                    <>
+                      Regístrate y consigue tu entrada sin cargo <ArrowRight className="h-5 w-5" />
+                    </>
+                  ) : (
+                    <>
+                      Comprar entrada <ArrowRight className="h-5 w-5" />
+                    </>
+                  )}
+                </button>
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -645,6 +675,14 @@ export function Patrocinios() {
     };
   }, []);
 
+  // Tres filas para el efecto marquee (se desplazan en bucle, alternando sentido).
+  const third = Math.ceil(sponsors.length / 3);
+  const rows = [
+    sponsors.slice(0, third),
+    sponsors.slice(third, third * 2),
+    sponsors.slice(third * 2),
+  ];
+
   return (
     <Section id="patrocinios" className="border-t border-border/60">
       <SectionTitle
@@ -661,36 +699,53 @@ export function Patrocinios() {
           Pronto anunciaremos a nuestros aliados.
         </div>
       ) : (
-        <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-          {sponsors.map((s) => {
-            const card = (
-              <div className="flex h-28 items-center justify-center rounded-xl border border-border bg-white p-3 transition hover:border-secondary/40 hover:shadow-md">
-                {mediaUrl(s.logo) && (
-                  <img
-                    src={mediaUrl(s.logo) as string}
-                    alt={s.name}
-                    loading="lazy"
-                    className="max-h-full max-w-full object-contain"
-                  />
-                )}
-              </div>
-            );
-            return s.website ? (
-              <a
-                key={s.id}
-                href={s.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                title={s.name}
+        <div className="mt-12 space-y-4">
+          {rows.map((row, i) =>
+            row.length === 0 ? null : (
+              <div
+                key={i}
+                className="overflow-hidden"
+                style={{
+                  maskImage:
+                    "linear-gradient(to right, transparent, black 6%, black 94%, transparent)",
+                  WebkitMaskImage:
+                    "linear-gradient(to right, transparent, black 6%, black 94%, transparent)",
+                }}
               >
-                {card}
-              </a>
-            ) : (
-              <div key={s.id} title={s.name}>
-                {card}
+                <div className={`marquee-row ${i === 1 ? "marquee-rtl" : "marquee-ltr"}`}>
+                  {[...row, ...row].map((s, j) => {
+                    const card = (
+                      <div className="flex h-28 w-44 shrink-0 items-center justify-center rounded-xl border border-border bg-white p-3 transition hover:border-secondary/40 hover:shadow-md">
+                        {mediaUrl(s.logo) && (
+                          <img
+                            src={mediaUrl(s.logo) as string}
+                            alt={s.name}
+                            loading="lazy"
+                            className="max-h-full max-w-full object-contain"
+                          />
+                        )}
+                      </div>
+                    );
+                    return s.website ? (
+                      <a
+                        key={`${s.id}-${j}`}
+                        href={s.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title={s.name}
+                      >
+                        {card}
+                      </a>
+                    ) : (
+                      <div key={`${s.id}-${j}`} title={s.name}>
+                        {card}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            );
-          })}
+            ),
+          )}
         </div>
       )}
     </Section>
@@ -788,6 +843,25 @@ export function Prensa() {
 }
 
 export function Footer() {
+  const [cfg, setCfg] = useState<EventConfig | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    getPublicEventConfig()
+      .then((data) => active && setCfg(data))
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Valores de respaldo mientras carga (o si falla la red).
+  const whatsapp1 = cfg?.contact_whatsapp_primary || "+51 931 388 602";
+  const whatsapp2 = cfg?.contact_whatsapp_secondary || "+51 993 289 550";
+  const email = cfg?.contact_email || "camaradeturismolalibertad@gmail.com";
+  const address =
+    cfg?.contact_address || "Jr. Independencia 467 · Plaza de Armas (2do piso), Trujillo";
+
   return (
     <footer id="contacto" className="border-t border-border bg-primary text-primary-foreground">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 lg:grid-cols-4 lg:px-8">
@@ -801,30 +875,33 @@ export function Footer() {
           <p className="text-xs font-semibold uppercase tracking-wider text-white/60">WhatsApp</p>
           <p className="mt-2 flex items-center gap-2 text-sm">
             <Phone className="h-4 w-4" />
-            <span>+51 931 388 602</span>
+            <span>{whatsapp1}</span>
           </p>
-          <p className="mt-1 flex items-center gap-2 text-sm">
-            <Phone className="h-4 w-4" />
-            <span>+51 993 289 550</span>
-          </p>
+          {whatsapp2 && (
+            <p className="mt-1 flex items-center gap-2 text-sm">
+              <Phone className="h-4 w-4" />
+              <span>{whatsapp2}</span>
+            </p>
+          )}
         </div>
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-white/60">E-mail</p>
           <p className="mt-2 flex items-center gap-2 text-sm break-all">
             <Mail className="h-4 w-4" />
-            <span>camaradeturismolalibertad@gmail.com</span>
+            <span>{email}</span>
           </p>
         </div>
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-white/60">Ubicación</p>
           <p className="mt-2 flex items-start gap-2 text-sm">
-            <MapPin className="h-4 w-4 mt-0.5" />
-            <span>Jr. Independencia 467 · Plaza de Armas (2do piso), Trujillo</span>
+            <MapPin className="mt-0.5 h-4 w-4" />
+            <span>{address}</span>
           </p>
         </div>
       </div>
-      <div className="border-t border-white/10 py-5 text-center text-xs text-white/60">
-        © 2026 Muchik · Cámara de Turismo de La Libertad. Todos los derechos reservados.
+      <div className="border-t border-white/10 py-5 text-center text-sm text-white/60">
+        <span className="font-semibold text-white/80">Desarrollado por Inteligencia Natural</span>.
+        Reservados todos los derechos
       </div>
     </footer>
   );

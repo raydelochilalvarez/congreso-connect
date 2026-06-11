@@ -5,7 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ApiError } from "@/integrations/api/client";
-import { getEventConfig, updateEventConfig, type EventConfig } from "@/integrations/api/event-config";
+import {
+  getEventConfig,
+  updateEventConfig,
+  type EventConfig,
+} from "@/integrations/api/event-config";
 
 export const Route = createFileRoute("/backoffice/evento")({
   head: () => ({ meta: [{ title: "Sede & Fechas — Backoffice" }] }),
@@ -71,7 +75,9 @@ function EventoAdminPage() {
         </span>
         <div>
           <h1 className="text-2xl font-bold text-primary md:text-3xl">Sede & Fechas</h1>
-          <p className="text-sm text-foreground/70">Configura la información de la sección de ubicación.</p>
+          <p className="text-sm text-foreground/70">
+            Configura la información de la sección de ubicación.
+          </p>
         </div>
       </header>
 
@@ -94,42 +100,127 @@ function EventoAdminPage() {
         <form onSubmit={onSave} className="mt-6 space-y-4">
           <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
             <Label className="text-sm font-medium">Título de ubicación</Label>
-            <Input className="mt-2" value={form.location_headline} onChange={(e) => set("location_headline", e.target.value)} placeholder="Trujillo, Perú" />
+            <Input
+              className="mt-2"
+              value={form.location_headline}
+              onChange={(e) => set("location_headline", e.target.value)}
+              placeholder="Trujillo, Perú"
+            />
           </div>
           <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
             <Label className="text-sm font-medium">Descripción</Label>
-            <Textarea className="mt-2" rows={3} value={form.location_description} onChange={(e) => set("location_description", e.target.value)} />
+            <Textarea
+              className="mt-2"
+              rows={3}
+              value={form.location_description}
+              onChange={(e) => set("location_description", e.target.value)}
+            />
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
               <Label className="text-sm font-medium">Fechas</Label>
-              <Input className="mt-2" value={form.dates} onChange={(e) => set("dates", e.target.value)} placeholder="21, 22 y 23 de octubre 2026" />
+              <Input
+                className="mt-2"
+                value={form.dates}
+                onChange={(e) => set("dates", e.target.value)}
+                placeholder="21, 22 y 23 de octubre 2026"
+              />
             </div>
             <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
               <Label className="text-sm font-medium">Sede</Label>
-              <Input className="mt-2" value={form.venue} onChange={(e) => set("venue", e.target.value)} placeholder="Costa del Sol Wyndham · Trujillo" />
+              <Input
+                className="mt-2"
+                value={form.venue}
+                onChange={(e) => set("venue", e.target.value)}
+                placeholder="Costa del Sol Wyndham · Trujillo"
+              />
             </div>
             <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
               <Label className="text-sm font-medium">País invitado</Label>
-              <Input className="mt-2" value={form.guest_country} onChange={(e) => set("guest_country", e.target.value)} placeholder="Chile" />
+              <Input
+                className="mt-2"
+                value={form.guest_country}
+                onChange={(e) => set("guest_country", e.target.value)}
+                placeholder="Chile"
+              />
             </div>
             <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
               <Label className="text-sm font-medium">Etiqueta edición anterior</Label>
-              <Input className="mt-2" value={form.previous_edition_label} onChange={(e) => set("previous_edition_label", e.target.value)} placeholder="Edición 2025" />
+              <Input
+                className="mt-2"
+                value={form.previous_edition_label}
+                onChange={(e) => set("previous_edition_label", e.target.value)}
+                placeholder="Edición 2025"
+              />
             </div>
           </div>
 
           <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
             <Label className="text-sm font-medium">Estadísticas edición anterior</Label>
-            <Input className="mt-2" value={form.previous_edition_stats} onChange={(e) => set("previous_edition_stats", e.target.value)} placeholder="+200 empresas · +380 reuniones B2B" />
+            <Input
+              className="mt-2"
+              value={form.previous_edition_stats}
+              onChange={(e) => set("previous_edition_stats", e.target.value)}
+              placeholder="+200 empresas · +380 reuniones B2B"
+            />
           </div>
           <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
             <Label className="text-sm font-medium">Consulta del mapa</Label>
             <p className="mt-1 text-xs text-muted-foreground">
               Texto de búsqueda en Google Maps (arma el mapa y el botón "Cómo llegar").
             </p>
-            <Input className="mt-2" value={form.map_query} onChange={(e) => set("map_query", e.target.value)} placeholder="Costa del Sol Wyndham Trujillo" />
+            <Input
+              className="mt-2"
+              value={form.map_query}
+              onChange={(e) => set("map_query", e.target.value)}
+              placeholder="Costa del Sol Wyndham Trujillo"
+            />
+          </div>
+
+          <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+            <p className="text-sm font-semibold uppercase tracking-wider text-secondary">
+              Contacto (footer)
+            </p>
+            <div className="mt-3 grid gap-4 sm:grid-cols-2">
+              <div>
+                <Label className="text-sm font-medium">WhatsApp 1</Label>
+                <Input
+                  className="mt-2"
+                  value={form.contact_whatsapp_primary}
+                  onChange={(e) => set("contact_whatsapp_primary", e.target.value)}
+                  placeholder="+51 931 388 602"
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-medium">WhatsApp 2</Label>
+                <Input
+                  className="mt-2"
+                  value={form.contact_whatsapp_secondary}
+                  onChange={(e) => set("contact_whatsapp_secondary", e.target.value)}
+                  placeholder="+51 993 289 550"
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-medium">E-mail</Label>
+                <Input
+                  className="mt-2"
+                  type="email"
+                  value={form.contact_email}
+                  onChange={(e) => set("contact_email", e.target.value)}
+                  placeholder="correo@dominio.com"
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Dirección</Label>
+                <Input
+                  className="mt-2"
+                  value={form.contact_address}
+                  onChange={(e) => set("contact_address", e.target.value)}
+                  placeholder="Jr. Independencia 467 · Trujillo"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="flex justify-end pt-2">

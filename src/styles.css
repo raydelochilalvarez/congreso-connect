@@ -167,3 +167,33 @@
     font-family: inherit;
   }
 }
+
+/* Marquee de logos de patrocinadores (filas que se desplazan en bucle). */
+@keyframes marquee-ltr {
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes marquee-rtl {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.marquee-row {
+  display: flex;
+  width: max-content;
+  gap: 1rem;
+  will-change: transform;
+}
+
+.marquee-row:hover {
+  animation-play-state: paused;
+}
+
+.marquee-ltr {
+  animation: marquee-ltr 60s linear infinite;
+}
+
+.marquee-rtl {
+  animation: marquee-rtl 60s linear infinite;
+}

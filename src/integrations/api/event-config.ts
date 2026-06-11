@@ -12,6 +12,10 @@ export interface EventConfig {
   previous_edition_label: string;
   previous_edition_stats: string;
   map_query: string;
+  contact_whatsapp_primary: string;
+  contact_whatsapp_secondary: string;
+  contact_email: string;
+  contact_address: string;
 }
 
 /** URL del mapa embebido de Google a partir del texto de búsqueda. */
