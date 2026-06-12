@@ -205,7 +205,7 @@ function PatrocinadoresAdminPage() {
                     <img
                       src={mediaUrl(s.logo) as string}
                       alt={s.name}
-                      className="max-h-full max-w-full object-contain"
+                      className="h-full w-full object-cover"
                     />
                   ) : (
                     <Award className="h-6 w-6 text-muted-foreground" />
@@ -260,7 +260,7 @@ function PatrocinadoresAdminPage() {
             <div className="flex items-center gap-4">
               <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl border border-border bg-white">
                 {shownLogo ? (
-                  <img src={shownLogo} alt="" className="max-h-full max-w-full object-contain" />
+                  <img src={shownLogo} alt="" className="h-full w-full object-cover" />
                 ) : (
                   <Award className="h-6 w-6 text-muted-foreground" />
                 )}

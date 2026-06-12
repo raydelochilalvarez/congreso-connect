@@ -715,13 +715,13 @@ export function Patrocinios() {
                 <div className={`marquee-row ${i === 1 ? "marquee-rtl" : "marquee-ltr"}`}>
                   {[...row, ...row].map((s, j) => (
                     <div key={`${s.id}-${j}`} title={s.name}>
-                      <div className="flex h-28 w-44 shrink-0 items-center justify-center rounded-xl border border-border bg-white p-3 transition hover:border-secondary/40 hover:shadow-md">
+                      <div className="flex h-28 w-44 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-white transition hover:border-secondary/40 hover:shadow-md">
                         {mediaUrl(s.logo) && (
                           <img
                             src={mediaUrl(s.logo) as string}
                             alt={s.name}
                             loading="lazy"
-                            className="max-h-full max-w-full object-contain"
+                            className="h-full w-full object-cover"
                           />
                         )}
                       </div>
