@@ -1,11 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
-import { Loader2, Plus, ScanLine } from "lucide-react";
+import { Loader2, Pencil, Plus, ScanLine, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ApiError } from "@/integrations/api/client";
-import { listRegistradores, createUser, type AdminUser } from "@/integrations/api/users";
+import {
+  listRegistradores,
+  createUser,
+  updateUser,
+  deleteUser,
+  type AdminUser,
+} from "@/integrations/api/users";
 
 export const Route = createFileRoute("/backoffice/registradores")({
   head: () => ({ meta: [{ title: "Registradores — Backoffice" }] }),
@@ -35,9 +41,16 @@ type FormState = {
   last_name: string;
   email: string;
   password: string;
+  confirm_password: string;
 };
 
-const emptyForm: FormState = { first_name: "", last_name: "", email: "", password: "" };
+const emptyForm: FormState = {
+  first_name: "",
+  last_name: "",
+  email: "",
+  password: "",
+  confirm_password: "",
+};
 
 function RegistradoresAdminPage() {
   const [items, setItems] = useState<AdminUser[]>([]);
@@ -45,6 +58,7 @@ function RegistradoresAdminPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<AdminUser | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -71,7 +85,21 @@ function RegistradoresAdminPage() {
   }
 
   function openCreate() {
+    setEditing(null);
     setForm(emptyForm);
+    setFormError(null);
+    setOpen(true);
+  }
+
+  function openEdit(u: AdminUser) {
+    setEditing(u);
+    setForm({
+      first_name: u.first_name,
+      last_name: u.last_name,
+      email: u.email,
+      password: "",
+      confirm_password: "",
+    });
     setFormError(null);
     setOpen(true);
   }
@@ -87,26 +115,54 @@ function RegistradoresAdminPage() {
       setFormError("El email es obligatorio.");
       return;
     }
-    if (form.password.length < 8) {
-      setFormError("La contraseña debe tener al menos 8 caracteres.");
-      return;
+    // En creación la contraseña es obligatoria; en edición es opcional (vacía =
+    // no cambiar). Si se escribe, debe tener 8+ caracteres y coincidir.
+    const wantsPassword = !editing || form.password.length > 0;
+    if (wantsPassword) {
+      if (form.password.length < 8) {
+        setFormError("La contraseña debe tener al menos 8 caracteres.");
+        return;
+      }
+      if (form.password !== form.confirm_password) {
+        setFormError("Las contraseñas no coinciden.");
+        return;
+      }
     }
 
     setSaving(true);
     try {
-      await createUser({
-        first_name: form.first_name.trim(),
-        last_name: form.last_name.trim(),
-        email: form.email.trim(),
-        password: form.password,
-        role: "registrador",
-      });
+      if (editing) {
+        await updateUser(editing.id, {
+          first_name: form.first_name.trim(),
+          last_name: form.last_name.trim(),
+          email: form.email.trim(),
+          ...(wantsPassword ? { password: form.password } : {}),
+        });
+      } else {
+        await createUser({
+          first_name: form.first_name.trim(),
+          last_name: form.last_name.trim(),
+          email: form.email.trim(),
+          password: form.password,
+          role: "registrador",
+        });
+      }
       setOpen(false);
       await load();
     } catch (err) {
       setFormError(formatApiError(err));
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function onDelete(u: AdminUser) {
+    if (!window.confirm(`¿Eliminar a "${u.full_name}"? Esta acción no se puede deshacer.`)) return;
+    try {
+      await deleteUser(u.id);
+      await load();
+    } catch (err) {
+      setError(formatApiError(err));
     }
   }
 
@@ -120,7 +176,7 @@ function RegistradoresAdminPage() {
           <div>
             <h1 className="text-2xl font-bold text-primary md:text-3xl">Registradores</h1>
             <p className="text-sm text-foreground/70">
-              Personal que escanea el QR para verificar las entradas en el acceso.
+              Personal que registra el acceso en la entrada.
             </p>
           </div>
         </div>
@@ -174,17 +230,33 @@ function RegistradoresAdminPage() {
                   </div>
                   <p className="truncate text-xs text-muted-foreground">{u.email}</p>
                 </div>
+                <div className="flex shrink-0 gap-1.5">
+                  <button
+                    onClick={() => openEdit(u)}
+                    aria-label={`Editar ${u.full_name}`}
+                    className="rounded-full border border-border p-2 text-foreground/80 transition hover:bg-muted"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => onDelete(u)}
+                    aria-label={`Eliminar ${u.full_name}`}
+                    className="rounded-full border border-red-300 p-2 text-red-600 transition hover:bg-red-50 dark:border-red-900/50 dark:hover:bg-red-950/30"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </article>
             ))}
           </div>
         )}
       </div>
 
-      {/* Diálogo crear */}
+      {/* Diálogo crear / editar */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Nuevo registrador</DialogTitle>
+            <DialogTitle>{editing ? "Editar registrador" : "Nuevo registrador"}</DialogTitle>
           </DialogHeader>
 
           {formError && (
@@ -225,18 +297,35 @@ function RegistradoresAdminPage() {
               />
             </div>
             <div>
-              <Label className="text-sm font-medium">Contraseña *</Label>
+              <Label className="text-sm font-medium">
+                {editing ? "Nueva contraseña" : "Contraseña *"}
+              </Label>
               <Input
                 className="mt-2"
                 type="password"
                 value={form.password}
                 onChange={(e) => set("password", e.target.value)}
-                placeholder="Mínimo 8 caracteres"
+                placeholder={editing ? "Dejar vacío para no cambiarla" : "Mínimo 8 caracteres"}
                 autoComplete="new-password"
               />
-              <p className="mt-1 text-xs text-muted-foreground">
-                Con estas credenciales el registrador inicia sesión para escanear entradas.
-              </p>
+              {!editing && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Con estas credenciales el registrador inicia sesión para registrar accesos.
+                </p>
+              )}
+            </div>
+            <div>
+              <Label className="text-sm font-medium">
+                {editing ? "Confirmar nueva contraseña" : "Confirmar contraseña *"}
+              </Label>
+              <Input
+                className="mt-2"
+                type="password"
+                value={form.confirm_password}
+                onChange={(e) => set("confirm_password", e.target.value)}
+                placeholder="Repite la contraseña"
+                autoComplete="new-password"
+              />
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
@@ -254,7 +343,7 @@ function RegistradoresAdminPage() {
                 style={{ background: "var(--gradient-brand)" }}
               >
                 {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-                Crear
+                {editing ? "Guardar" : "Crear"}
               </button>
             </div>
           </form>

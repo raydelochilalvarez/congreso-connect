@@ -29,6 +29,14 @@ export interface CreateUserPayload {
   role: string;
 }
 
+/** Edición parcial: la contraseña es opcional (si va vacía, no se cambia). */
+export interface UpdateUserPayload {
+  email?: string;
+  first_name?: string;
+  last_name?: string;
+  password?: string;
+}
+
 /** Lista los usuarios con rol registrador (más recientes primero). */
 export async function listRegistradores(): Promise<Paginated<AdminUser>> {
   return apiRequest<Paginated<AdminUser>>(
@@ -44,4 +52,18 @@ export async function createUser(data: CreateUserPayload): Promise<AdminUser> {
     auth: true,
     body: data,
   });
+}
+
+/** Edita un usuario (admin). PATCH parcial. */
+export async function updateUser(id: number, data: UpdateUserPayload): Promise<AdminUser> {
+  return apiRequest<AdminUser>(`/api/v1/users/${id}/`, {
+    method: "PATCH",
+    auth: true,
+    body: data,
+  });
+}
+
+/** Elimina un usuario (admin). */
+export async function deleteUser(id: number): Promise<void> {
+  await apiRequest(`/api/v1/users/${id}/`, { method: "DELETE", auth: true });
 }

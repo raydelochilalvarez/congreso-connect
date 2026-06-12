@@ -15,9 +15,9 @@ import {
   Menu,
   Mic,
   Receipt,
-  ScanLine,
   Store,
   Ticket,
+  User,
   UserCog,
   X,
 } from "lucide-react";
@@ -50,7 +50,7 @@ const menu: NavItem[] = [
     ],
   },
   { to: "/backoffice/expositores", label: "Aprobar expositores", icon: ClipboardCheck },
-  { to: "/backoffice/registradores", label: "Registradores", icon: ScanLine },
+  { to: "/backoffice/registradores", label: "Usuario registrador", icon: User },
   {
     label: "Contenido del landing",
     icon: Globe,
