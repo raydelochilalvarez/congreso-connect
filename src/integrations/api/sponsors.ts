@@ -4,19 +4,15 @@
 import { apiRequest } from "./client";
 import type { Paginated } from "./ticket-types";
 
-/** Lo que ve la landing (lectura pública). */
+/** Lo que ve la landing (lectura pública). Es solo el avatar (logo). */
 export interface PublicSponsor {
   id: number;
   name: string;
   logo: string | null;
-  website: string;
-  tier: string;
 }
 
 /** Registro completo para la gestión del admin. */
 export interface Sponsor extends PublicSponsor {
-  /** URL/CDN externa opcional (alternativa al archivo subido). */
-  logo_url: string;
   is_active: boolean;
   sort_order: number;
   created_at: string;

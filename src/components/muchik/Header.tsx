@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Menu, Ticket, X } from "lucide-react";
+import { Menu, Settings, Ticket, X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { MuchikLogo } from "./Logo";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -29,6 +29,14 @@ function UserCard({ user, onLogout }: { user: AuthUser; onLogout: () => void }) 
         </span>
       </div>
       <div className="h-px bg-border" />
+      {user.role === "admin" && (
+        <Link
+          to="/backoffice"
+          className="flex items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-foreground/80 transition hover:bg-muted"
+        >
+          <Settings className="h-4 w-4" /> Configuración
+        </Link>
+      )}
       <Link
         to="/mis-entradas"
         className="flex items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-foreground/80 transition hover:bg-muted"
@@ -163,6 +171,15 @@ export function Header() {
                       <p className="truncate text-xs text-muted-foreground">{user.email}</p>
                     </div>
                   </div>
+                  {user.role === "admin" && (
+                    <Link
+                      to="/backoffice"
+                      onClick={() => setOpen(false)}
+                      className="flex items-center gap-2 rounded-lg px-1 py-1.5 text-sm font-medium text-foreground/80"
+                    >
+                      <Settings className="h-4 w-4" /> Configuración
+                    </Link>
+                  )}
                   <Link
                     to="/mis-entradas"
                     onClick={() => setOpen(false)}

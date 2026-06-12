@@ -7,6 +7,7 @@ import {
   ChevronRight,
   Award,
   ClipboardCheck,
+  Globe,
   Handshake,
   Image as ImageIcon,
   LogOut,
@@ -48,13 +49,19 @@ const menu: NavItem[] = [
     ],
   },
   { to: "/backoffice/expositores", label: "Aprobar expositores", icon: ClipboardCheck },
-  { to: "/backoffice/entradas", label: "Catálogo de entradas", icon: Ticket },
-  { to: "/backoffice/stands", label: "Catálogo de stands", icon: Store },
-  { to: "/backoffice/banners", label: "Banners", icon: ImageIcon },
-  { to: "/backoffice/b2b", label: "Rueda B2B", icon: Handshake },
-  { to: "/backoffice/disertantes", label: "Disertantes", icon: Mic },
-  { to: "/backoffice/patrocinadores", label: "Patrocinadores", icon: Award },
-  { to: "/backoffice/evento", label: "Sede & Fechas", icon: MapPin },
+  {
+    label: "Contenido del landing",
+    icon: Globe,
+    children: [
+      { to: "/backoffice/entradas", label: "Catálogo de entradas", icon: Ticket },
+      { to: "/backoffice/stands", label: "Catálogo de stands", icon: Store },
+      { to: "/backoffice/banners", label: "Banners", icon: ImageIcon },
+      { to: "/backoffice/b2b", label: "Rueda B2B", icon: Handshake },
+      { to: "/backoffice/disertantes", label: "Disertantes", icon: Mic },
+      { to: "/backoffice/patrocinadores", label: "Patrocinadores", icon: Award },
+      { to: "/backoffice/evento", label: "Sede & Fechas", icon: MapPin },
+    ],
+  },
 ];
 
 function NavLink({

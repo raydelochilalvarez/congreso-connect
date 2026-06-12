@@ -31,18 +31,12 @@ function formatApiError(err: unknown): string {
 
 type FormState = {
   name: string;
-  website: string;
-  tier: string;
-  logo_url: string;
   sort_order: string;
   is_active: boolean;
 };
 
 const emptyForm: FormState = {
   name: "",
-  website: "",
-  tier: "",
-  logo_url: "",
   sort_order: "0",
   is_active: true,
 };
@@ -97,9 +91,6 @@ function PatrocinadoresAdminPage() {
     setEditing(s);
     setForm({
       name: s.name,
-      website: s.website,
-      tier: s.tier,
-      logo_url: s.logo_url || "",
       sort_order: String(s.sort_order),
       is_active: s.is_active,
     });
@@ -124,18 +115,14 @@ function PatrocinadoresAdminPage() {
       setFormError("El nombre es obligatorio.");
       return;
     }
-    // Debe haber al menos una fuente de logo: archivo nuevo, URL externa, o
-    // (al editar) un archivo ya existente.
-    const hasLogo = Boolean(logoFile || form.logo_url.trim() || currentLogo);
+    // Debe haber un logo: archivo nuevo o (al editar) el ya existente.
+    const hasLogo = Boolean(logoFile || currentLogo);
     if (!hasLogo) {
-      setFormError("Sube un logo o indica una URL de logo.");
+      setFormError("Sube un logo.");
       return;
     }
     const fd = new FormData();
     fd.append("name", form.name.trim());
-    fd.append("website", form.website.trim());
-    fd.append("tier", form.tier.trim());
-    fd.append("logo_url", form.logo_url.trim());
     fd.append("sort_order", String(Number(form.sort_order) || 0));
     fd.append("is_active", form.is_active ? "true" : "false");
     if (logoFile) fd.append("logo", logoFile);
@@ -166,7 +153,7 @@ function PatrocinadoresAdminPage() {
     }
   }
 
-  const shownLogo = logoPreview || mediaUrl(currentLogo) || form.logo_url.trim() || null;
+  const shownLogo = logoPreview || mediaUrl(currentLogo) || null;
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -214,9 +201,9 @@ function PatrocinadoresAdminPage() {
                 className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm"
               >
                 <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-white">
-                  {mediaUrl(s.logo) || s.logo_url ? (
+                  {mediaUrl(s.logo) ? (
                     <img
-                      src={(mediaUrl(s.logo) || s.logo_url) as string}
+                      src={mediaUrl(s.logo) as string}
                       alt={s.name}
                       className="max-h-full max-w-full object-contain"
                     />
@@ -233,10 +220,6 @@ function PatrocinadoresAdminPage() {
                       </span>
                     )}
                   </div>
-                  {s.tier && <p className="text-xs text-secondary">{s.tier}</p>}
-                  {s.website && (
-                    <p className="truncate text-xs text-muted-foreground">{s.website}</p>
-                  )}
                 </div>
                 <div className="flex shrink-0 gap-1.5">
                   <button
@@ -310,49 +293,14 @@ function PatrocinadoresAdminPage() {
               />
             </div>
             <div>
-              <Label className="text-sm font-medium">Sitio web</Label>
+              <Label className="text-sm font-medium">Orden</Label>
               <Input
                 className="mt-2"
-                type="url"
-                value={form.website}
-                onChange={(e) => set("website", e.target.value)}
-                placeholder="https://…"
+                type="number"
+                min="0"
+                value={form.sort_order}
+                onChange={(e) => set("sort_order", e.target.value)}
               />
-            </div>
-            <div>
-              <Label className="text-sm font-medium">URL de logo (CDN externo)</Label>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Alternativa al archivo: si la indicas, el logo se carga desde esa URL. Lo
-                recomendable en producción es subir el archivo.
-              </p>
-              <Input
-                className="mt-2"
-                type="url"
-                value={form.logo_url}
-                onChange={(e) => set("logo_url", e.target.value)}
-                placeholder="https://…/logo.png"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="text-sm font-medium">Nivel</Label>
-                <Input
-                  className="mt-2"
-                  value={form.tier}
-                  onChange={(e) => set("tier", e.target.value)}
-                  placeholder="Oro / Plata…"
-                />
-              </div>
-              <div>
-                <Label className="text-sm font-medium">Orden</Label>
-                <Input
-                  className="mt-2"
-                  type="number"
-                  min="0"
-                  value={form.sort_order}
-                  onChange={(e) => set("sort_order", e.target.value)}
-                />
-              </div>
             </div>
             <label className="flex items-center gap-2 text-sm text-foreground/80">
               <input

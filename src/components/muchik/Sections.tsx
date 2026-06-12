@@ -713,8 +713,8 @@ export function Patrocinios() {
                 }}
               >
                 <div className={`marquee-row ${i === 1 ? "marquee-rtl" : "marquee-ltr"}`}>
-                  {[...row, ...row].map((s, j) => {
-                    const card = (
+                  {[...row, ...row].map((s, j) => (
+                    <div key={`${s.id}-${j}`} title={s.name}>
                       <div className="flex h-28 w-44 shrink-0 items-center justify-center rounded-xl border border-border bg-white p-3 transition hover:border-secondary/40 hover:shadow-md">
                         {mediaUrl(s.logo) && (
                           <img
@@ -725,23 +725,8 @@ export function Patrocinios() {
                           />
                         )}
                       </div>
-                    );
-                    return s.website ? (
-                      <a
-                        key={`${s.id}-${j}`}
-                        href={s.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title={s.name}
-                      >
-                        {card}
-                      </a>
-                    ) : (
-                      <div key={`${s.id}-${j}`} title={s.name}>
-                        {card}
-                      </div>
-                    );
-                  })}
+                    </div>
+                  ))}
                 </div>
               </div>
             ),

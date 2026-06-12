@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { RegistroDialog } from "./RegistroDialog";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import { mediaUrl } from "@/integrations/api/client";
 import { listPublicBanners } from "@/integrations/api/banners";
 import banner1 from "@/assets/banner-feria.jpg";
@@ -42,6 +43,7 @@ export function BannerCarousel() {
   const [emblaRef, embla] = useEmblaCarousel({ loop: true });
   const [index, setIndex] = useState(0);
   const [slides, setSlides] = useState<Slide[]>(fallbackSlides);
+  const { user, loading } = useCurrentUser();
 
   // Carga los banners dinámicos del backend; si no hay, deja los de respaldo.
   useEffect(() => {
@@ -107,10 +109,12 @@ export function BannerCarousel() {
                     {s.sub}
                   </p>
                   <div className="mt-7 flex flex-wrap gap-3">
-                    <RegistroDialog className="rounded-full bg-white px-7 py-3 text-sm font-semibold text-primary shadow-[var(--shadow-brand)] transition hover:scale-[1.02]">
-                      Regístrate
-                    </RegistroDialog>
-                    <a
+                    {!loading && !user && (
+                      <RegistroDialog className="rounded-full bg-white px-7 py-3 text-sm font-semibold text-primary shadow-[var(--shadow-brand)] transition hover:scale-[1.02]">
+                        Regístrate
+                      </RegistroDialog>
+                    )}
+                    <
                       href="#entradas"
                       className="rounded-full border border-white/60 px-7 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
                     >
