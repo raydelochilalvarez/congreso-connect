@@ -34,11 +34,14 @@ function LoginPage() {
     try {
       const user = await apiLogin(email, password);
       // Destino según el rol: admin → backoffice, expositor → su panel
-      // (que a su vez muestra "aprobado" o "en espera"), resto → landing.
+      // (que a su vez muestra "aprobado" o "en espera"), registrador → su
+      // vista de escaneo, resto → landing.
       if (user.role === "admin") {
         navigate({ to: "/backoffice" });
       } else if (user.role === "expositor") {
         navigate({ to: "/expositor" });
+      } else if (user.role === "registrador") {
+        navigate({ to: "/registrador" });
       } else {
         navigate({ to: "/" });
       }
