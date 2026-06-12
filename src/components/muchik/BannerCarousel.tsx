@@ -114,7 +114,7 @@ export function BannerCarousel() {
                         Regístrate
                       </RegistroDialog>
                     )}
-                    <
+                    <a
                       href="#entradas"
                       className="rounded-full border border-white/60 px-7 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
                     >
