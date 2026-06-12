@@ -15,6 +15,7 @@ import {
   Menu,
   Mic,
   Receipt,
+  ScanLine,
   Store,
   Ticket,
   UserCog,
@@ -49,6 +50,7 @@ const menu: NavItem[] = [
     ],
   },
   { to: "/backoffice/expositores", label: "Aprobar expositores", icon: ClipboardCheck },
+  { to: "/backoffice/registradores", label: "Registradores", icon: ScanLine },
   {
     label: "Contenido del landing",
     icon: Globe,
